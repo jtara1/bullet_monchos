@@ -781,6 +781,7 @@ name = "bullet_monchos"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "rand",
 ]
 
 [[package]]

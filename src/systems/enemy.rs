@@ -1,6 +1,8 @@
 use bevy::prelude::*;
+use rand::prelude::*;
 
-use crate::entities;
+use crate::{entities, WINDOW_DIMENSIONS};
+use crate::entities::create_enemy;
 
 pub struct SpawnerTimer(Timer);
 impl Default for SpawnerTimer {
@@ -13,23 +15,16 @@ pub fn enemy_spawner(
     time: Res<Time>,
     mut timer: ResMut<SpawnerTimer>,
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
+    enemy_material: Res<entities::EnemyMaterial>,
 ) {
     if timer.0.tick(time.delta()).just_finished() {
-        // entities::create_enemy(commands, asset_server, materials, Vec3::new(0., 0., 2.));
-        let material = materials.add(asset_server.get_handle("sprites/enemyRed1.png").into());
-
-        commands
-            .spawn_bundle(SpriteBundle {
-                material,
-                transform: Transform {
-                    // translation: Vec3::new(0., 0., 1.),
-                    // scale: Vec3::new(0.8, 0.8, 1.),
-                    ..Default::default()
-                },
-                ..Default::default()
-            })
-            .insert(entities::Enemy::default());
+        if let material = match enemy_material.0.clone() {
+            Some(material) => material,
+            None => return,
+        } {
+            let vertical_limit = (WINDOW_DIMENSIONS.height / 2.) as i32;
+            let y = rand::thread_rng().gen_range(0..vertical_limit);
+            create_enemy(commands, material, Vec3::new(0., y as f32, 1.));
+        }
     }
 }

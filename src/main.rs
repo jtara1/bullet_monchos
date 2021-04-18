@@ -72,12 +72,16 @@ fn setup(
 
     asset_server.load_folder("sprites/backgrounds/alt").expect("sprite bgs not found");
     asset_server.load_folder("sprites").expect("sprites not found");
+    materials.add(asset_server.get_handle("sprites/enemyRed1.png").into());
 
     let player_material = materials.add(asset_server.get_handle("sprites/playerShip1_blue.png").into());
     let bg_material = materials.add(asset_server.get_handle("sprites/backgrounds/alt/black.png").into());
+    let enemy_material = materials.add(asset_server.get_handle("sprites/enemyRed1.png").into());
 
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
     commands.spawn_bundle(UiCameraBundle::default());
+
+    commands.insert_resource(EnemyMaterial(Some(enemy_material)));
 
     // spawn background sprite
     commands
