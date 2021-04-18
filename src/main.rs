@@ -11,17 +11,24 @@ use crate::greet::*;
 
 fn main() {
     App::build()
-    .add_plugins(DefaultPlugins)
-    .insert_resource(ClearColor(Color::rgb(0.0, 0.9, 0.0)))
-    .add_startup_system(setup.system())
-    .add_system_set(
-        SystemSet::new()
-            .with_run_criteria(FixedTimestep::step(TIME_STEP as f64))
-            .with_system(movement.system())
-            .with_system(bullet_spawning.system())
-            .with_system(bullet_movement.system()),
-    )
-    .run();
+        .add_plugins(DefaultPlugins)
+        .insert_resource(ClearColor(Color::rgb(0.0, 0.0, 0.0)))
+        .add_startup_system(setup.system())
+        .insert_resource(WindowDescriptor {
+            title: "Bullet Monchos".to_string(),
+            width: 1000.,
+            height: 1800.,
+            vsync: true,
+            ..Default::default()
+        })
+        .add_system_set(
+            SystemSet::new()
+                .with_run_criteria(FixedTimestep::step(TIME_STEP as f64))
+                .with_system(movement.system())
+                .with_system(bullet_spawning.system())
+                .with_system(bullet_movement.system()),
+        )
+        .run();
 }
 
 struct Player {
@@ -35,22 +42,30 @@ struct Bullet {
 fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     asset_server.load_folder("sprites/backgrounds/alt");
     asset_server.load_folder("sprites");
 
-    let texture_handle = asset_server.get_handle("sprites/playerShip1_blue.png");
-    let texture_atlas =
-        TextureAtlas::from_grid(texture_handle, Vec2::new(50., 50.), 1, 1);
-    let texture_atlas_handle = texture_atlases.add(texture_atlas);
+    let player_material = materials.add(asset_server.get_handle("sprites/playerShip1_blue.png").into());
+    let bg_material = materials.add(asset_server.get_handle("sprites/backgrounds/alt/black.png").into());
 
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
     commands.spawn_bundle(UiCameraBundle::default());
 
     commands
-        .spawn_bundle(SpriteSheetBundle {
-            texture_atlas: texture_atlas_handle.clone(),
+        .spawn_bundle(SpriteBundle {
+            material: bg_material.clone(),
+            transform: Transform {
+                scale: Vec3::new(6., 6., 1.),
+                ..Default::default()
+            },
+            ..Default::default()
+        });
+
+    commands
+        .spawn_bundle(SpriteBundle {
+            material: player_material.clone(),
             ..Default::default()
         })
         .insert(Player { speed: 300. });
