@@ -4,8 +4,11 @@ use bevy::{
 };
 
 const TIME_STEP: f32 = 1.0 / 60.0;
-
 const WINDOW_DIMENSIONS: WindowDimensions = WindowDimensions { width: 700., height: 1400. };
+const PLAYER_CLAMP: PlayerPositionClamp = PlayerPositionClamp {
+    x: WINDOW_DIMENSIONS.width * 0.5 - (PlayerSprite::default().width / 4.),
+    y: WINDOW_DIMENSIONS.height * 0.5 - (PlayerSprite::default().height / 4.),
+};
 
 
 fn main() {
@@ -36,6 +39,11 @@ struct PlayerSprite {
     path: String,
     width: f32,
     height: f32,
+}
+
+struct PlayerPositionClamp {
+    x: f32,
+    y: f32,
 }
 
 impl Default for PlayerSprite {
@@ -128,13 +136,9 @@ fn movement(
         translation.x += direction.x * player.speed * TIME_STEP;
         translation.y += direction.y * player.speed * TIME_STEP;
 
-        // clamp horizontally
-        let horizontal_limit = WINDOW_DIMENSIONS.width * 0.5 - (PlayerSprite::default().width / 4.);
-        translation.x = translation.x.min(horizontal_limit).max(-horizontal_limit);
-
-        // clamp vertically
-        let vertical_limit = WINDOW_DIMENSIONS.height * 0.5 - (PlayerSprite::default().height / 4.);
-        translation.y = translation.y.min(vertical_limit).max(-vertical_limit);
+        // clamp
+        translation.x = translation.x.min(PLAYER_CLAMP.x).max(-PLAYER_CLAMP.x);
+        translation.y = translation.y.min(PLAYER_CLAMP.y).max(-PLAYER_CLAMP.y);
     }
 }
 
