@@ -225,14 +225,11 @@ fn bullet_collision(
                 sprite.size,
             );
 
-            let collision = match collision {
-                Some(collision) => collision,
-                None => return,
-            };
-
-            if let Collider::Enemy = collider {
-                damage_writer.send(DamageEvent { entity: collider_entity });
-                commands.entity(bullet_entity).despawn();
+            if let Some(_) = collision {
+                if let Collider::Enemy = *collider {
+                    damage_writer.send(DamageEvent { entity: collider_entity });
+                    commands.entity(bullet_entity).despawn();
+                }
             }
         }
     }
