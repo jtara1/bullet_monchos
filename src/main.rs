@@ -6,6 +6,7 @@ use bevy::{core::FixedTimestep, prelude::*, sprite::collide_aabb::collide};
 
 use crate::entities::*;
 use crate::systems::*;
+use bevy::sprite::collide_aabb::Collision;
 
 const TIME_STEP: f32 = 1.0 / 60.0;
 const WINDOW_DIMENSIONS: WindowDimensions = WindowDimensions { width: 700., height: 1400. };
@@ -210,17 +211,21 @@ fn bullet_collision(
         let bullet_size = sprite.size;
 
         for (collider_entity, collider, transform, sprite) in collider_query.iter() {
-            let collision = collide(
+            let collision: Option<Collision> = collide(
                 bullet_transform.translation,
-                 bullet_size,
-                 transform.translation,
-                   sprite.size,
-                );
-            if let Some(collision) = collision {
-                if let Collider::Enemy = *collider {
-                    damage_writer.send(DamageEvent {entity: collider_entity});
-                    commands.entity(bullet_entity).despawn();
-                }
+                bullet_size,
+                transform.translation,
+                sprite.size,
+            );
+
+            let collision = match collision {
+                Some(collision) => collision,
+                None => return,
+            };
+
+            if let Collider::Enemy = collider {
+                damage_writer.send(DamageEvent { entity: collider_entity });
+                commands.entity(bullet_entity).despawn();
             }
         }
     }
@@ -237,8 +242,8 @@ fn damage_receiver(
             println!("Health is {}", health.current);
             if health.current <= 0 {
                 commands.entity(event.entity).despawn();
-            }  
+            }
         }
-         
+
     }
 }
