@@ -4,9 +4,8 @@ use bevy::{
 };
 
 const TIME_STEP: f32 = 1.0 / 60.0;
-const TOP_RESTRICTION: f32 = 500.0;
-const LEFT_RESTRICTION: f32 = -600.0;
-const RIGHT_RESTRICTION: f32 = 600.0;
+
+const WINDOW_DIMENSIONS: WindowDimensions = WindowDimensions { width: 700., height: 1400. };
 
 
 fn main() {
@@ -24,8 +23,29 @@ fn main() {
         .run();
 }
 
+struct WindowDimensions {
+    width: f32,
+    height: f32,
+}
+
 struct Player {
     speed: f32,
+}
+
+struct PlayerSprite {
+    path: String,
+    width: f32,
+    height: f32,
+}
+
+impl Default for PlayerSprite {
+    fn default() -> Self {
+        PlayerSprite {
+            path: "sprites/playerShip1_blue.png".to_string(),
+            width: 99.,
+            height: 75.,
+        }
+    }
 }
 
 struct Bullet {
@@ -41,17 +61,18 @@ fn setup(
     windows
         .get_primary_mut()
         .unwrap()
-        .set_resolution(700., 1400.);
+        .set_resolution(WINDOW_DIMENSIONS.width, WINDOW_DIMENSIONS.height);
 
     asset_server.load_folder("sprites/backgrounds/alt").expect("sprite bgs not found");
     asset_server.load_folder("sprites").expect("sprites not found");
 
-    let player_material = materials.add(asset_server.get_handle("sprites/playerShip1_blue.png").into());
+    let player_material = materials.add(asset_server.get_handle(&PlayerSprite::default().path[..]).into());
     let bg_material = materials.add(asset_server.get_handle("sprites/backgrounds/alt/black.png").into());
 
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
     commands.spawn_bundle(UiCameraBundle::default());
 
+    // spawn background sprite
     commands
         .spawn_bundle(SpriteBundle {
             material: bg_material.clone(),
@@ -62,10 +83,12 @@ fn setup(
             ..Default::default()
         });
 
+    // spawn player ship sprite
     commands
         .spawn_bundle(SpriteBundle {
             material: player_material.clone(),
             transform: Transform {
+                translation: Vec3::new(0., 0., 1.),
                 scale: Vec3::new(0.8, 0.8, 1.),
                 ..Default::default()
             },
@@ -103,8 +126,15 @@ fn movement(
         let translation = &mut transform.translation;
         // move the player
         translation.x += direction.x * player.speed * TIME_STEP;
-        translation.x = translation.x.min(RIGHT_RESTRICTION).max(LEFT_RESTRICTION);
         translation.y += direction.y * player.speed * TIME_STEP;
+
+        // clamp horizontally
+        let horizontal_limit = WINDOW_DIMENSIONS.width * 0.5 - (PlayerSprite::default().width / 4.);
+        translation.x = translation.x.min(horizontal_limit).max(-horizontal_limit);
+
+        // clamp vertically
+        let vertical_limit = WINDOW_DIMENSIONS.height * 0.5 - (PlayerSprite::default().height / 4.);
+        translation.y = translation.y.min(vertical_limit).max(-vertical_limit);
     }
 }
 
@@ -124,7 +154,7 @@ fn bullet_spawning(
                     sprite: Sprite::new(Vec2::new(5.0, 5.0)),
                     ..Default::default()
                 })
-                .insert(Bullet { speed: 1200.0});
+                .insert(Bullet { speed: 1200.0 });
         }
     }
 }
