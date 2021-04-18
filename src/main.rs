@@ -1,7 +1,4 @@
-use bevy::{
-    core::FixedTimestep,
-    prelude::*,
-};
+use bevy::{core::FixedTimestep, prelude::*, sprite::collide_aabb::collide};
 
 const TIME_STEP: f32 = 1.0 / 60.0;
 const TOP_RESTRICTION: f32 = 500.0;
@@ -20,6 +17,7 @@ fn main() {
                 .with_system(movement.system())
                 .with_system(bullet_spawning.system())
                 .with_system(bullet_movement.system())
+                .with_system(bullet_collision.system())
         )
         .run();
 }
@@ -30,6 +28,13 @@ struct Player {
 
 struct Bullet {
     speed: f32,
+}
+
+enum Collider {
+    Bullet,
+    Player,
+    Enemy,
+    TestWall,
 }
 
 fn setup(
@@ -72,6 +77,19 @@ fn setup(
             ..Default::default()
         })
         .insert(Player { speed: 300. });
+
+    //Test garbage here. Should be removed asap
+    commands
+        .spawn_bundle(SpriteBundle {
+            material: player_material.clone(),
+            transform: Transform {
+                scale: Vec3::new(0.8, 0.8, 1.),
+                translation: Vec3::new(0.0, 80.0, 0.0),
+                ..Default::default()
+            },
+            ..Default::default()
+        })
+        .insert(Collider::TestWall);
 }
 
 fn movement(
@@ -142,6 +160,30 @@ fn bullet_movement(
         translation.y += direction.y * bullet.speed * TIME_STEP;
         if translation.y > TOP_RESTRICTION {
             commands.entity(entity).despawn();
+        }
+    }
+}
+
+fn bullet_collision(
+    mut commands: Commands,
+    mut bullet_query: Query<(&mut Bullet, &Transform, &Sprite)>,
+    collider_query: Query<(Entity, &Collider, &Transform, &Sprite)>,
+) {
+    for (mut bullet, bullet_transform, sprite) in bullet_query.iter_mut() {
+        let bullet_size = sprite.size;
+
+        for (collider_entity, collider, transform, sprite) in collider_query.iter() {
+            let collision = collide(
+                bullet_transform.translation,
+                 bullet_size,
+                 transform.translation,
+                   sprite.size,
+                );
+            if let Some(collision) = collision {
+                if let Collider::TestWall = *collider {
+                    commands.entity(collider_entity).despawn();
+                }
+            }
         }
     }
 }
