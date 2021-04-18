@@ -1,8 +1,5 @@
 mod greet;
 
-use bevy::prelude::*;
-use bevy::window;
-
 use bevy::{
     core::FixedTimestep,
     prelude::*,
@@ -15,7 +12,6 @@ use crate::greet::*;
 fn main() {
     App::build()
     .add_plugins(DefaultPlugins)
-    // .add_plugin(greet::GreetPlugin)
     .insert_resource(ClearColor(Color::rgb(0.0, 0.9, 0.0)))
     .add_startup_system(setup.system())
     .add_system_set(
@@ -32,20 +28,26 @@ struct Player {
 
 fn setup(
     mut commands: Commands,
-    mut materials: ResMut<Assets<ColorMaterial>>,
     asset_server: Res<AssetServer>,
+    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
+    asset_server.load_folder("sprites/backgrounds/alt");
+    asset_server.load_folder("sprites");
+
+    let texture_handle = asset_server.get_handle("sprites/playerShip1_blue.png");
+    let texture_atlas =
+        TextureAtlas::from_grid(texture_handle, Vec2::new(50., 50.), 1, 1);
+    let texture_atlas_handle = texture_atlases.add(texture_atlas);
+
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
     commands.spawn_bundle(UiCameraBundle::default());
 
     commands
-        .spawn_bundle(SpriteBundle {
-            material: materials.add(Color::rgb(0.5, 0.5, 1.0).into()),
-            transform: Transform::from_xyz(0.0, -215.0, 0.0),
-            sprite: Sprite::new(Vec2::new(30.0, 30.0)),
+        .spawn_bundle(SpriteSheetBundle {
+            texture_atlas: texture_atlas_handle.clone(),
             ..Default::default()
         })
-        .insert(Player { speed: 300.0});
+        .insert(Player { speed: 300. });
 }
 
 fn movement(
