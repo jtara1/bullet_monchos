@@ -214,7 +214,7 @@ fn bullet_collision(
     mut bullet_query: Query<(Entity, &mut Bullet, &Transform, &Sprite)>,
     collider_query: Query<(Entity, &Collider, &Transform, &Sprite)>,
 ) {
-    for (bullet_entity, mut _bullet, bullet_transform, sprite) in bullet_query.iter_mut() {
+    for (bullet_entity, mut bullet, bullet_transform, sprite) in bullet_query.iter_mut() {
         let bullet_size = sprite.size;
 
         for (collider_entity, collider, transform, sprite) in collider_query.iter() {
@@ -226,7 +226,7 @@ fn bullet_collision(
             );
 
             if let Some(_) = collision {
-                let has_collided = match _bullet.owner {
+                let has_collided = match bullet.owner {
                     Owner::Player => true,
                     Owner::Enemy => true,
                     _ => false,
