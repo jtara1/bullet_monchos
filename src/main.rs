@@ -65,6 +65,10 @@ fn setup(
     commands
         .spawn_bundle(SpriteBundle {
             material: player_material.clone(),
+            transform: Transform {
+                scale: Vec3::new(0.8, 0.8, 1.),
+                ..Default::default()
+            },
             ..Default::default()
         })
         .insert(Player { speed: 300. });
