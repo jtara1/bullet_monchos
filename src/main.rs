@@ -5,9 +5,10 @@ use bevy::{
 
 const TIME_STEP: f32 = 1.0 / 60.0;
 const WINDOW_DIMENSIONS: WindowDimensions = WindowDimensions { width: 700., height: 1400. };
+const PLAYER_DIMENSIONS: PlayerDimensions = PlayerDimensions { width: 99., height: 75. };
 const PLAYER_CLAMP: PlayerPositionClamp = PlayerPositionClamp {
-    x: WINDOW_DIMENSIONS.width * 0.5 - (PlayerSprite::default().width / 4.),
-    y: WINDOW_DIMENSIONS.height * 0.5 - (PlayerSprite::default().height / 4.),
+    x: WINDOW_DIMENSIONS.width * 0.5 - (PLAYER_DIMENSIONS.width / 4.),
+    y: WINDOW_DIMENSIONS.height * 0.5 - (PLAYER_DIMENSIONS.height / 4.),
 };
 
 
@@ -35,8 +36,7 @@ struct Player {
     speed: f32,
 }
 
-struct PlayerSprite {
-    path: String,
+struct PlayerDimensions {
     width: f32,
     height: f32,
 }
@@ -44,16 +44,6 @@ struct PlayerSprite {
 struct PlayerPositionClamp {
     x: f32,
     y: f32,
-}
-
-impl Default for PlayerSprite {
-    fn default() -> Self {
-        PlayerSprite {
-            path: "sprites/playerShip1_blue.png".to_string(),
-            width: 99.,
-            height: 75.,
-        }
-    }
 }
 
 struct Bullet {
@@ -74,7 +64,7 @@ fn setup(
     asset_server.load_folder("sprites/backgrounds/alt").expect("sprite bgs not found");
     asset_server.load_folder("sprites").expect("sprites not found");
 
-    let player_material = materials.add(asset_server.get_handle(&PlayerSprite::default().path[..]).into());
+    let player_material = materials.add(asset_server.get_handle("sprites/playerShip1_blue.png").into());
     let bg_material = materials.add(asset_server.get_handle("sprites/backgrounds/alt/black.png").into());
 
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
@@ -174,7 +164,7 @@ fn bullet_movement(
         // move the bullet vertically
         translation.x += direction.x * bullet.speed * TIME_STEP;
         translation.y += direction.y * bullet.speed * TIME_STEP;
-        if translation.y > TOP_RESTRICTION {
+        if translation.y > PLAYER_CLAMP.y {
             commands.entity(entity).despawn();
         }
     }
