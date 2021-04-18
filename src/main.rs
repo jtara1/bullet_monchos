@@ -1,5 +1,6 @@
 mod entities;
 mod systems;
+mod components;
 
 use bevy::{core::FixedTimestep, prelude::*, sprite::collide_aabb::collide};
 
@@ -21,7 +22,6 @@ fn main() {
         .insert_resource(ClearColor(Color::rgb(0.0, 0.0, 0.0)))
         .insert_resource(SpawnerTimer::default())
         .add_startup_system(setup.system())
-        // .add_system(create_enemy.system())
         .add_system_set(
             SystemSet::new()
                 .with_run_criteria(FixedTimestep::step(TIME_STEP as f64))
@@ -31,6 +31,7 @@ fn main() {
                 .with_system(bullet_collision.system())
         )
         .add_system(enemy_spawner.system())
+        .add_system(linear_movement.system())
         .run();
 }
 

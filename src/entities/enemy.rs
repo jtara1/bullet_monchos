@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use crate::components::Movement;
 
 pub struct Enemy {
     speed: f32,
@@ -26,5 +27,6 @@ pub fn create_enemy(
             },
             ..Default::default()
         })
-        .insert(Enemy::default());
+        .insert(Enemy::default())
+        .insert(Movement::new(Vec3::new(0., -1., 0.), 300. ));
 }
