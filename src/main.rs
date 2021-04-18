@@ -1,8 +1,5 @@
 mod greet;
 
-use bevy::prelude::*;
-use bevy::window;
-
 use bevy::{
     core::FixedTimestep,
     prelude::*,
@@ -68,6 +65,10 @@ fn movement(
 
         if keyboard_input.pressed(KeyCode::Down) {
             direction.y -= 1.0;
+        }
+
+        if direction != Vec3::new(0.0,0.0,0.0) {
+            direction = direction.normalize();
         }
 
         let translation = &mut transform.translation;
