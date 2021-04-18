@@ -1,5 +1,3 @@
-mod greet;
-
 use bevy::{
     core::FixedTimestep,
     prelude::*,
@@ -10,26 +8,18 @@ const TOP_RESTRICTION: f32 = 500.0;
 const LEFT_RESTRICTION: f32 = -600.0;
 const RIGHT_RESTRICTION: f32 = 600.0;
 
-use crate::greet::*;
 
 fn main() {
     App::build()
         .add_plugins(DefaultPlugins)
         .insert_resource(ClearColor(Color::rgb(0.0, 0.0, 0.0)))
         .add_startup_system(setup.system())
-        .insert_resource(WindowDescriptor {
-            title: "Bullet Monchos".to_string(),
-            width: 1000.,
-            height: 1800.,
-            vsync: true,
-            ..Default::default()
-        })
         .add_system_set(
             SystemSet::new()
                 .with_run_criteria(FixedTimestep::step(TIME_STEP as f64))
                 .with_system(movement.system())
                 .with_system(bullet_spawning.system())
-                .with_system(bullet_movement.system()),
+                .with_system(bullet_movement.system())
         )
         .run();
 }
@@ -46,9 +36,15 @@ fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     mut materials: ResMut<Assets<ColorMaterial>>,
+    mut windows: ResMut<Windows>,
 ) {
-    asset_server.load_folder("sprites/backgrounds/alt");
-    asset_server.load_folder("sprites");
+    windows
+        .get_primary_mut()
+        .unwrap()
+        .set_resolution(800., 1600.);
+
+    asset_server.load_folder("sprites/backgrounds/alt").expect("sprite bgs not found");
+    asset_server.load_folder("sprites").expect("sprites not found");
 
     let player_material = materials.add(asset_server.get_handle("sprites/playerShip1_blue.png").into());
     let bg_material = materials.add(asset_server.get_handle("sprites/backgrounds/alt/black.png").into());
