@@ -35,6 +35,7 @@ fn main() {
         )
         .add_system(enemy_spawner.system())
         .add_system(linear_movement.system())
+        .add_system(enemy_shooting.system())
         .run();
 }
 
@@ -58,6 +59,7 @@ struct PlayerPositionClamp {
 }
 
 struct Bullet {
+    owner: Owner,
     speed: f32,
 }
 
@@ -71,6 +73,11 @@ enum Collider {
     Player,
     Enemy,
     TestWall,
+}
+
+enum Owner {
+    Player,
+    Enemy,
 }
 
 struct DamageEvent {
@@ -179,7 +186,7 @@ fn bullet_spawning(
                     sprite: Sprite::new(Vec2::new(5.0, 5.0)),
                     ..Default::default()
                 })
-                .insert(Bullet { speed: 1200.0 });
+                .insert(Bullet { owner: Owner::Player, speed: 600.0 });
         }
     }
 }
@@ -239,7 +246,7 @@ fn damage_receiver(
     for event in damage_reader.iter() {
         for mut health in health_query.iter_mut() {
             health.current = health.current - 1;
-            println!("Health is {}", health.current);
+            println!("Health is {} for entity {:?}", health.current, event.entity);
             if health.current <= 0 {
                 commands.entity(event.entity).despawn();
             }
