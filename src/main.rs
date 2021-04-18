@@ -6,6 +6,9 @@ use bevy::{
 };
 
 const TIME_STEP: f32 = 1.0 / 60.0;
+const TOP_RESTRICTION: f32 = 500.0;
+const LEFT_RESTRICTION: f32 = -600.0;
+const RIGHT_RESTRICTION: f32 = 600.0;
 
 use crate::greet::*;
 
@@ -100,6 +103,7 @@ fn movement(
         let translation = &mut transform.translation;
         // move the player
         translation.x += direction.x * player.speed * TIME_STEP;
+        translation.x = translation.x.min(RIGHT_RESTRICTION).max(LEFT_RESTRICTION);
         translation.y += direction.y * player.speed * TIME_STEP;
     }
 }
@@ -120,20 +124,24 @@ fn bullet_spawning(
                     sprite: Sprite::new(Vec2::new(5.0, 5.0)),
                     ..Default::default()
                 })
-                .insert(Bullet { speed: 800.0});
+                .insert(Bullet { speed: 1200.0});
         }
     }
 }
 
 fn bullet_movement(
-    mut query: Query<(&Bullet, &mut Transform)>
+    mut commands: Commands,
+    mut query: Query<(Entity, &Bullet, &mut Transform)>,
 ) {
-    for (bullet, mut transform) in query.iter_mut() {
+    for (entity, bullet, mut transform) in query.iter_mut() {
         let direction: Vec3 = Vec3::new(0.0,1.0,0.0);
 
         let translation = &mut transform.translation;
         // move the bullet vertically
         translation.x += direction.x * bullet.speed * TIME_STEP;
         translation.y += direction.y * bullet.speed * TIME_STEP;
+        if translation.y > TOP_RESTRICTION {
+            commands.entity(entity).despawn();
+        }
     }
 }
