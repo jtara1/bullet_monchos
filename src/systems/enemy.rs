@@ -22,9 +22,12 @@ pub fn enemy_spawner(
             Some(material) => material,
             None => return,
         } {
+            let horizontal_limit = (WINDOW_DIMENSIONS.width / 2.) as i32;
             let vertical_limit = (WINDOW_DIMENSIONS.height / 2.) as i32;
+
+            let x = rand::thread_rng().gen_range(-horizontal_limit..horizontal_limit);
             let y = rand::thread_rng().gen_range(0..vertical_limit);
-            create_enemy(commands, material, Vec3::new(0., y as f32, 1.));
+            create_enemy(commands, material, Vec3::new(x as f32, y as f32, 1.));
         }
     }
 }
