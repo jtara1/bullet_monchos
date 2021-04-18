@@ -1,6 +1,8 @@
 use bevy::prelude::*;
 use crate::components::Movement;
 
+use crate::{Collider, Health};
+
 pub struct Enemy {
     speed: f32,
 }
@@ -28,5 +30,9 @@ pub fn create_enemy(
             ..Default::default()
         })
         .insert(Enemy::default())
-        .insert(Movement::new(Vec3::new(0., -1., 0.), 300. ));
+
+        .insert(Movement::new(Vec3::new(0., -1., 0.), 300. ))
+        .insert(Movement::new(Vec3::new(0., -1., 0.), 300. ))
+        .insert(Collider::Enemy)
+        .insert(Health {max: 10, current: 10});
 }
