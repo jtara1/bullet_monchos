@@ -41,7 +41,7 @@ fn setup(
     windows
         .get_primary_mut()
         .unwrap()
-        .set_resolution(800., 1600.);
+        .set_resolution(700., 1400.);
 
     asset_server.load_folder("sprites/backgrounds/alt").expect("sprite bgs not found");
     asset_server.load_folder("sprites").expect("sprites not found");
