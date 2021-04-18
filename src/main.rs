@@ -226,7 +226,13 @@ fn bullet_collision(
             );
 
             if let Some(_) = collision {
-                if let Collider::Enemy = *collider {
+                let has_collided = match _bullet.owner {
+                    Owner::Player => true,
+                    Owner::Enemy => true,
+                    _ => false,
+                };
+
+                if has_collided {
                     damage_writer.send(DamageEvent { entity: collider_entity });
                     commands.entity(bullet_entity).despawn();
                 }
