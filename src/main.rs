@@ -17,12 +17,18 @@ fn main() {
     .add_system_set(
         SystemSet::new()
             .with_run_criteria(FixedTimestep::step(TIME_STEP as f64))
-            .with_system(movement.system()),
+            .with_system(movement.system())
+            .with_system(bullet_spawning.system())
+            .with_system(bullet_movement.system()),
     )
     .run();
 }
 
 struct Player {
+    speed: f32,
+}
+
+struct Bullet {
     speed: f32,
 }
 
@@ -72,9 +78,47 @@ fn movement(
             direction.y -= 1.0;
         }
 
+        if direction != Vec3::new(0.0,0.0,0.0) {
+            direction = direction.normalize();
+        }
+
         let translation = &mut transform.translation;
-        // move the player horizontally
+        // move the player
         translation.x += direction.x * player.speed * TIME_STEP;
         translation.y += direction.y * player.speed * TIME_STEP;
+    }
+}
+
+fn bullet_spawning(
+    mut commands: Commands,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    keyboard_input: Res<Input<KeyCode>>,
+    mut query: Query<(&Player, &mut Transform)>
+) {
+    if let Ok((_player, transform)) = query.single_mut() {
+        let spawn_location = transform;
+        if keyboard_input.pressed(KeyCode::Space) {
+            commands
+                .spawn_bundle(SpriteBundle {
+                    material: materials.add(Color::rgb(1.0, 0.2, 0.2).into()),
+                    transform: *spawn_location,
+                    sprite: Sprite::new(Vec2::new(5.0, 5.0)),
+                    ..Default::default()
+                })
+                .insert(Bullet { speed: 800.0});
+        }
+    }
+}
+
+fn bullet_movement(
+    mut query: Query<(&Bullet, &mut Transform)>
+) {
+    for (bullet, mut transform) in query.iter_mut() {
+        let direction: Vec3 = Vec3::new(0.0,1.0,0.0);
+
+        let translation = &mut transform.translation;
+        // move the bullet vertically
+        translation.x += direction.x * bullet.speed * TIME_STEP;
+        translation.y += direction.y * bullet.speed * TIME_STEP;
     }
 }
