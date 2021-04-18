@@ -21,6 +21,7 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .insert_resource(ClearColor(Color::rgb(0.0, 0.0, 0.0)))
         .insert_resource(SpawnerTimer::default())
+        .add_event::<DamageEvent>()
         .add_startup_system(setup.system())
         .add_system_set(
             SystemSet::new()
@@ -29,6 +30,7 @@ fn main() {
                 .with_system(bullet_spawning.system())
                 .with_system(bullet_movement.system())
                 .with_system(bullet_collision.system())
+                .with_system(damage_receiver.system())
         )
         .add_system(enemy_spawner.system())
         .add_system(linear_movement.system())
@@ -58,11 +60,20 @@ struct Bullet {
     speed: f32,
 }
 
+pub struct Health {
+    max: i32,
+    current: i32,
+}
+
 enum Collider {
     Bullet,
     Player,
     Enemy,
     TestWall,
+}
+
+struct DamageEvent {
+    entity: Entity
 }
 
 fn setup(
@@ -112,19 +123,6 @@ fn setup(
             ..Default::default()
         })
         .insert(Player { speed: 300. });
-
-    //Test garbage here. Should be removed asap
-    commands
-        .spawn_bundle(SpriteBundle {
-            material: player_material.clone(),
-            transform: Transform {
-                scale: Vec3::new(0.8, 0.8, 1.),
-                translation: Vec3::new(0.0, 80.0, 0.0),
-                ..Default::default()
-            },
-            ..Default::default()
-        })
-        .insert(Collider::TestWall);
 }
 
 fn movement(
@@ -204,10 +202,11 @@ fn bullet_movement(
 
 fn bullet_collision(
     mut commands: Commands,
-    mut bullet_query: Query<(&mut Bullet, &Transform, &Sprite)>,
+    mut damage_writer: EventWriter<DamageEvent>,
+    mut bullet_query: Query<(Entity, &mut Bullet, &Transform, &Sprite)>,
     collider_query: Query<(Entity, &Collider, &Transform, &Sprite)>,
 ) {
-    for (mut bullet, bullet_transform, sprite) in bullet_query.iter_mut() {
+    for (bullet_entity, mut _bullet, bullet_transform, sprite) in bullet_query.iter_mut() {
         let bullet_size = sprite.size;
 
         for (collider_entity, collider, transform, sprite) in collider_query.iter() {
@@ -218,10 +217,28 @@ fn bullet_collision(
                    sprite.size,
                 );
             if let Some(collision) = collision {
-                if let Collider::TestWall = *collider {
-                    commands.entity(collider_entity).despawn();
+                if let Collider::Enemy = *collider {
+                    damage_writer.send(DamageEvent {entity: collider_entity});
+                    commands.entity(bullet_entity).despawn();
                 }
             }
         }
+    }
+}
+
+fn damage_receiver(
+    mut commands: Commands,
+    mut damage_reader: EventReader<DamageEvent>,
+    mut health_query: Query<&mut Health>
+) {
+    for event in damage_reader.iter() {
+        for mut health in health_query.iter_mut() {
+            health.current = health.current - 1;
+            println!("Health is {}", health.current);
+            if health.current <= 0 {
+                commands.entity(event.entity).despawn();
+            }  
+        }
+         
     }
 }
