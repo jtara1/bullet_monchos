@@ -219,7 +219,7 @@ fn bullet_movement(
         // move the bullet vertically
         translation.x += direction.x * bullet.speed * TIME_STEP;
         translation.y += direction.y * bullet.speed * TIME_STEP;
-        if translation.y > PLAYER_CLAMP.y {
+        if translation.y > PLAYER_CLAMP.y || translation.y < -PLAYER_CLAMP.y {
             commands.entity(entity).despawn();
         }
     }
