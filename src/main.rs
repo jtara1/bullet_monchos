@@ -73,6 +73,8 @@ pub struct Health {
     current: i32,
 }
 
+struct PlayerBulletMaterial(pub Option<Handle<ColorMaterial>>);
+
 enum Collider {
     Bullet,
     Player,
@@ -108,12 +110,14 @@ fn setup(
     let bg_material = materials.add(asset_server.get_handle("sprites/backgrounds/alt/black.png").into());
     let enemy_material = materials.add(asset_server.get_handle("sprites/enemyRed1.png").into());
     let enemy_bullet_material = materials.add(asset_server.get_handle("sprites/laserRed16.png").into());
+    let player_bullet_material = materials.add(asset_server.get_handle("sprites/laserBlue16.png").into());
 
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
     commands.spawn_bundle(UiCameraBundle::default());
 
     commands.insert_resource(EnemyMaterial(Some(enemy_material)));
     commands.insert_resource(EnemyBulletMaterial(Some(enemy_bullet_material)));
+    commands.insert_resource(PlayerBulletMaterial(Some(player_bullet_material)));
 
     // spawn background sprite
     commands
@@ -138,7 +142,8 @@ fn setup(
             ..Default::default()
         })
         .insert(Player { speed: 300. })
-        .insert(Collider::Player);
+        .insert(Collider::Player)
+        .insert(Health {max: 30, current: 30});
 }
 
 fn movement(
@@ -180,21 +185,25 @@ fn movement(
 
 fn bullet_spawning(
     mut commands: Commands,
-    mut materials: ResMut<Assets<ColorMaterial>>,
+    bullet_material: Res<PlayerBulletMaterial>,
     keyboard_input: Res<Input<KeyCode>>,
     mut query: Query<(&Player, &mut Transform)>
 ) {
     if let Ok((_player, transform)) = query.single_mut() {
-        let spawn_location = transform;
-        if keyboard_input.pressed(KeyCode::Space) {
-            commands
-                .spawn_bundle(SpriteBundle {
-                    material: materials.add(Color::rgb(1.0, 0.2, 0.2).into()),
-                    transform: *spawn_location,
-                    sprite: Sprite::new(Vec2::new(5.0, 5.0)),
-                    ..Default::default()
-                })
-                .insert(Bullet { owner: Owner::Player, speed: 600.0 });
+        if let material = match bullet_material.0.clone() {
+            Some(material) => material,
+            None => return,
+        } {
+            if keyboard_input.pressed(KeyCode::Space) {
+                commands
+                    .spawn_bundle(SpriteBundle {
+                        material: material,
+                        transform: *transform,
+                        sprite: Sprite::new(Vec2::new(13.0, 54.0)),
+                        ..Default::default()
+                    })
+                    .insert(Bullet { owner: Owner::Player, speed: 600.0 });
+            }
         }
     }
 }
@@ -263,13 +272,14 @@ fn damage_receiver(
     mut health_query: Query<&mut Health>
 ) {
     for event in damage_reader.iter() {
-        for mut health in health_query.iter_mut() {
+        if let Ok(mut health) = health_query.get_mut(event.entity) {
             health.current = health.current - 1;
-            // println!("damage_receiver(): Health is {} for entity {:?}", health.current, event.entity);
+            //println!("damage_receiver(): Health is {} for entity {:?}", health.current, event.entity);
             if health.current <= 0 {
                 commands.entity(event.entity).despawn();
             }
+        } else {
+            println!("Does not have health component");
         }
-
     }
 }
