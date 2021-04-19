@@ -36,21 +36,27 @@ pub fn enemy_shooting (
     time: Res<Time>,
     mut timer: ResMut<SpawnerTimer>,
     mut commands: Commands,
-    mut materials: ResMut<Assets<ColorMaterial>>,
+    bullet_material: Res<entities::EnemyBulletMaterial>,
     mut query: Query<(&Enemy, &mut Transform)>,
 ) {
     for (enemy, mut transform) in query.iter_mut() {
         if timer.0.tick(time.delta()).just_finished() {
-            let spawn_location = transform;
+            if let material = match bullet_material.0.clone() {
+                Some(material) => material,
+                None => return,
+            } {
+                let spawn_location = transform;
 
-            commands
-                .spawn_bundle(SpriteBundle {
-                    material: materials.add(Color::rgb(1.0, 0.2, 0.2).into()),
-                    transform: *spawn_location,
-                    sprite: Sprite::new(Vec2::new(5.0, 5.0)),
-                    ..Default::default()
-                })
-                .insert(Bullet { owner: Owner::Enemy, speed: -600.0 });
+                commands
+                    .spawn_bundle(SpriteBundle {
+                        material: material,
+                        transform: *spawn_location,
+                        sprite: Sprite::new(Vec2::new(13.0, 54.0)),
+                        ..Default::default()
+                     })
+                    .insert(Bullet { owner: Owner::Enemy, speed: -600.0 });
+            }
+            
         }
     }
 }

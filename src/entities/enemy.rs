@@ -5,6 +5,7 @@ use crate::{Collider, Health};
 
 pub struct Enemy;
 pub struct EnemyMaterial(pub Option<Handle<ColorMaterial>>);
+pub struct EnemyBulletMaterial(pub Option<Handle<ColorMaterial>>);
 
 pub fn create_enemy(
     mut commands: Commands,

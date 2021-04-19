@@ -26,7 +26,7 @@ fn main() {
         .add_startup_system(setup.system())
         // ui
         .add_system(create_labels.system())
-        .add_system(label_update.system())
+        .add_system(update_labels.system())
         .add_system_set(
             // player and input
             SystemSet::new()
@@ -107,11 +107,13 @@ fn setup(
     let player_material = materials.add(asset_server.get_handle("sprites/playerShip1_blue.png").into());
     let bg_material = materials.add(asset_server.get_handle("sprites/backgrounds/alt/black.png").into());
     let enemy_material = materials.add(asset_server.get_handle("sprites/enemyRed1.png").into());
+    let enemy_bullet_material = materials.add(asset_server.get_handle("sprites/laserRed16.png").into());
 
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
     commands.spawn_bundle(UiCameraBundle::default());
 
     commands.insert_resource(EnemyMaterial(Some(enemy_material)));
+    commands.insert_resource(EnemyBulletMaterial(Some(enemy_bullet_material)));
 
     // spawn background sprite
     commands
