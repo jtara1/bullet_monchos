@@ -227,24 +227,21 @@ fn bullet_collision(
             );
 
             if let Some(_) = collision {
-                let has_collided = match bullet.owner {
-                    Owner::Player => {
-                        match collider {
-                            Collider::Player => false,
-                            Collider::Enemy => true,
-                            _ => false,
-                        }
-                    }
-                    Owner::Enemy =>  {
-                        match collider {
-                            Collider::Player => true,
-                            Collider::Enemy => false,
-                            _ => false,
-                        }
-                    }
-                };
+                let mut should_damage = false;
 
-                if has_collided {
+                if let Owner::Player = bullet.owner {
+                    if let Collider::Enemy = collider {
+                        should_damage = true;
+                    }
+                }
+
+                if let Owner::Enemy = bullet.owner {
+                    if let Collider::Player = collider {
+                        should_damage = true;
+                    }
+                }
+
+                if should_damage {
                     damage_writer.send(DamageEvent { entity: collider_entity });
                     commands.entity(bullet_entity).despawn();
                 }
