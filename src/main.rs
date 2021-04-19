@@ -24,7 +24,11 @@ fn main() {
         .insert_resource(SpawnerTimer::default())
         .add_event::<DamageEvent>()
         .add_startup_system(setup.system())
+        // ui
+        .add_system(create_labels.system())
+        .add_system(label_update.system())
         .add_system_set(
+            // player and input
             SystemSet::new()
                 .with_run_criteria(FixedTimestep::step(TIME_STEP as f64))
                 .with_system(movement.system())
@@ -33,6 +37,7 @@ fn main() {
                 .with_system(bullet_collision.system())
                 .with_system(damage_receiver.system())
         )
+        // enemy
         .add_system(enemy_spawner.system())
         .add_system(linear_movement.system())
         .add_system(enemy_shooting.system())
@@ -258,7 +263,7 @@ fn damage_receiver(
     for event in damage_reader.iter() {
         for mut health in health_query.iter_mut() {
             health.current = health.current - 1;
-            println!("Health is {} for entity {:?}", health.current, event.entity);
+            // println!("damage_receiver(): Health is {} for entity {:?}", health.current, event.entity);
             if health.current <= 0 {
                 commands.entity(event.entity).despawn();
             }

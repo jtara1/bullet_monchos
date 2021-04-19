@@ -22,7 +22,7 @@ pub fn create_enemy(
             ..Default::default()
         })
         .insert(Enemy)
-        .insert(Movement::new(Vec3::new(0., -1., 0.), 0. ))
+        .insert(Movement::new(Vec3::new(0., -1., 0.), 0.))
         .insert(Collider::Enemy)
         .insert(Health {max: 10, current: 10});
 }
