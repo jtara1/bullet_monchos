@@ -130,7 +130,8 @@ fn setup(
             },
             ..Default::default()
         })
-        .insert(Player { speed: 300. });
+        .insert(Player { speed: 300. })
+        .insert(Collider::Player);
 }
 
 fn movement(
@@ -227,9 +228,20 @@ fn bullet_collision(
 
             if let Some(_) = collision {
                 let has_collided = match bullet.owner {
-                    Owner::Player => true,
-                    Owner::Enemy => true,
-                    _ => false,
+                    Owner::Player => {
+                        match collider {
+                            Collider::Player => false,
+                            Collider::Enemy => true,
+                            _ => false,
+                        }
+                    }
+                    Owner::Enemy =>  {
+                        match collider {
+                            Collider::Player => true,
+                            Collider::Enemy => false,
+                            _ => false,
+                        }
+                    }
                 };
 
                 if has_collided {
