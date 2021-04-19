@@ -194,7 +194,7 @@ fn bullet_spawning(
             Some(material) => material,
             None => return,
         } {
-            if keyboard_input.pressed(KeyCode::Space) {
+            if keyboard_input.just_pressed(KeyCode::Space) {
                 commands
                     .spawn_bundle(SpriteBundle {
                         material: material,
