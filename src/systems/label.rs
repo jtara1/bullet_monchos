@@ -1,16 +1,18 @@
 use bevy::prelude::*;
 use bevy::diagnostic::{Diagnostics, FrameTimeDiagnosticsPlugin};
 
-use crate::{LabelType, Label};
+use crate::{LabelType};
 
 
 pub fn update_labels(
     diagnostics: Res<Diagnostics>,
-    mut query: Query<(&mut TextBundle, &Label)>,
+    mut query: Query<(&mut TextBundle, &LabelType)>,
 ) {
-    for (mut text_bundle, label) in query.iter_mut() {
+    // println!("update_labels()");
+
+    for (mut text_bundle, label_type) in query.iter_mut() {
         println!("label - queried");
-        match label.label_type {
+        match label_type {
             LabelType::Fps => {
                 println!("label - is fps");
                 if let Some(fps) = diagnostics.get(FrameTimeDiagnosticsPlugin::FPS) {
@@ -25,7 +27,7 @@ pub fn update_labels(
                             _ => ()
                         }
 
-                        println!("label sys {}", average);
+                        println!("label - fps = {}", average);
                         text_bundle.text.sections[0] = text_section;
                     }
                 }

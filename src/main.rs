@@ -20,16 +20,17 @@ const PLAYER_CLAMP: PlayerPositionClamp = PlayerPositionClamp {
 fn main() {
     App::build()
         .add_plugins(DefaultPlugins)
+        // bg color
         .insert_resource(ClearColor(Color::rgb(0.0, 0.0, 0.0)))
-        .insert_resource(SpawnerTimer::default())
-        .insert_resource(ImpactTimer::default())
-        .add_event::<DamageEvent>()
         .add_startup_system(setup.system())
         // ui
-        .add_system(create_labels.system())
+        .add_startup_system(create_labels.system())
         .add_system(update_labels.system())
+        // ship
+        .insert_resource(ImpactTimer::default())
+        .add_event::<DamageEvent>()
+        // player and input
         .add_system_set(
-            // player and input
             SystemSet::new()
                 .with_run_criteria(FixedTimestep::step(TIME_STEP as f64))
                 .with_system(movement.system())
@@ -40,6 +41,7 @@ fn main() {
                 .with_system(impact_effect_removal.system())
         )
         // enemy
+        .insert_resource(SpawnerTimer::default())
         .add_system(enemy_spawner.system())
         .add_system(linear_movement.system())
         .add_system(enemy_shooting.system())
@@ -289,7 +291,7 @@ fn bullet_collision(
                             })
                             .insert(ImpactEffect);
                     }
-                    
+
                 }
             }
         }
