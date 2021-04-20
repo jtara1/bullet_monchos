@@ -22,6 +22,7 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .insert_resource(ClearColor(Color::rgb(0.0, 0.0, 0.0)))
         .insert_resource(SpawnerTimer::default())
+        .insert_resource(ImpactTimer::default())
         .add_event::<DamageEvent>()
         .add_startup_system(setup.system())
         // ui
@@ -36,6 +37,7 @@ fn main() {
                 .with_system(bullet_movement.system())
                 .with_system(bullet_collision.system())
                 .with_system(damage_receiver.system())
+                .with_system(impact_effect_removal.system())
         )
         // enemy
         .add_system(enemy_spawner.system())
@@ -74,6 +76,16 @@ pub struct Health {
 }
 
 struct PlayerBulletMaterial(pub Option<Handle<ColorMaterial>>);
+struct BulletHitMaterial(pub Option<Handle<ColorMaterial>>);
+
+struct ImpactEffect;
+
+struct ImpactTimer(Timer);
+impl Default for ImpactTimer {
+    fn default() -> Self {
+        ImpactTimer(Timer::from_seconds(0.3, true))
+    }
+}
 
 enum Collider {
     Bullet,
@@ -111,6 +123,7 @@ fn setup(
     let enemy_material = materials.add(asset_server.get_handle("sprites/enemyRed1.png").into());
     let enemy_bullet_material = materials.add(asset_server.get_handle("sprites/laserRed16.png").into());
     let player_bullet_material = materials.add(asset_server.get_handle("sprites/laserBlue16.png").into());
+    let bullet_hit_material = materials.add(asset_server.get_handle("sprites/laserOrange16.png").into());
 
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
     commands.spawn_bundle(UiCameraBundle::default());
@@ -118,6 +131,7 @@ fn setup(
     commands.insert_resource(EnemyMaterial(Some(enemy_material)));
     commands.insert_resource(EnemyBulletMaterial(Some(enemy_bullet_material)));
     commands.insert_resource(PlayerBulletMaterial(Some(player_bullet_material)));
+    commands.insert_resource(BulletHitMaterial(Some(bullet_hit_material)));
 
     // spawn background sprite
     commands
@@ -228,6 +242,7 @@ fn bullet_movement(
 fn bullet_collision(
     mut commands: Commands,
     mut damage_writer: EventWriter<DamageEvent>,
+    bullet_material: Res<BulletHitMaterial>,
     mut bullet_query: Query<(Entity, &mut Bullet, &Transform, &Sprite)>,
     collider_query: Query<(Entity, &Collider, &Transform, &Sprite)>,
 ) {
@@ -260,8 +275,36 @@ fn bullet_collision(
                 if should_damage {
                     damage_writer.send(DamageEvent { entity: collider_entity });
                     commands.entity(bullet_entity).despawn();
+
+                    if let material = match bullet_material.0.clone() {
+                        Some(material) => material,
+                        None => return,
+                    } {
+                        commands
+                            .spawn_bundle(SpriteBundle {
+                                material: material,
+                                transform: *bullet_transform,
+                                sprite: Sprite::new(Vec2::new(37.0, 37.0)),
+                                ..Default::default()
+                            })
+                            .insert(ImpactEffect);
+                    }
+                    
                 }
             }
+        }
+    }
+}
+
+fn impact_effect_removal(
+    time: Res<Time>,
+    mut timer: ResMut<ImpactTimer>,
+    mut commands: Commands,
+    impact_effect_query: Query<(Entity, &ImpactEffect)>
+) {
+    for (entity, _impact_effect) in impact_effect_query.iter() {
+        if timer.0.tick(time.delta()).just_finished() {
+            commands.entity(entity).despawn();
         }
     }
 }
