@@ -7,8 +7,8 @@ pub enum LabelType {
     Fps,
 }
 
-pub fn create_labels(mut commands: Commands) {
-    // let font_handle = asset_server.get_handle("fonts/abc.ttf");
+pub fn create_labels(mut commands: Commands, asset_server: Res<AssetServer>) {
+    let font_handle = asset_server.get_handle("fonts/A-Space Black Demo.ttf");
     let font_size: f32 = 50.;
 
     commands
@@ -18,7 +18,7 @@ pub fn create_labels(mut commands: Commands) {
                 // align_self: AlignSelf::FlexEnd,
                 // position_type: PositionType::Absolute,
                 position: Rect {
-                    top: Val::Px(font_size * 2.0),
+                    // top: Val::Px(font_size * 2.0),
                     ..Default::default()
                 },
                 ..Default::default()
@@ -26,7 +26,11 @@ pub fn create_labels(mut commands: Commands) {
             text: Text {
                 sections: vec![TextSection {
                     value: String::from("FPS placeholder"),
-                    ..Default::default()
+                    style: TextStyle {
+                        font: font_handle.clone(),
+                        font_size,
+                        color: Default::default()
+                    }
                 }],
                 alignment: TextAlignment {
                     vertical: VerticalAlign::Center,

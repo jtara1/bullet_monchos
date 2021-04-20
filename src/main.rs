@@ -118,6 +118,7 @@ fn setup(
 
     asset_server.load_folder("sprites/backgrounds/alt").expect("sprite bgs not found");
     asset_server.load_folder("sprites").expect("sprites not found");
+    asset_server.load_folder("fonts").expect("fonts not found");
     materials.add(asset_server.get_handle("sprites/enemyRed1.png").into());
 
     let player_material = materials.add(asset_server.get_handle("sprites/playerShip1_blue.png").into());
