@@ -24,7 +24,7 @@ fn main() {
         .insert_resource(ClearColor(Color::rgb(0.0, 0.0, 0.0)))
         .add_startup_system(setup.system())
         // ui
-        .add_startup_system(create_labels.system())
+        // .add_startup_system(create_labels.system())
         .add_system(update_labels.system())
         // ship
         .insert_resource(ImpactTimer::default())
@@ -119,22 +119,24 @@ fn setup(
     asset_server.load_folder("sprites/backgrounds/alt").expect("sprite bgs not found");
     asset_server.load_folder("sprites").expect("sprites not found");
     asset_server.load_folder("fonts").expect("fonts not found");
-    materials.add(asset_server.get_handle("sprites/enemyRed1.png").into());
+
+    let bg_material = materials.add(asset_server.get_handle("sprites/backgrounds/alt/black.png").into());
 
     let player_material = materials.add(asset_server.get_handle("sprites/playerShip1_blue.png").into());
-    let bg_material = materials.add(asset_server.get_handle("sprites/backgrounds/alt/black.png").into());
+    let player_bullet_material = materials.add(asset_server.get_handle("sprites/laserBlue16.png").into());
+
     let enemy_material = materials.add(asset_server.get_handle("sprites/enemyRed1.png").into());
     let enemy_bullet_material = materials.add(asset_server.get_handle("sprites/laserRed16.png").into());
-    let player_bullet_material = materials.add(asset_server.get_handle("sprites/laserBlue16.png").into());
+
     let bullet_hit_material = materials.add(asset_server.get_handle("sprites/laserOrange16.png").into());
+
+    commands.insert_resource(PlayerBulletMaterial(Some(player_bullet_material)));
+    commands.insert_resource(EnemyMaterial(Some(enemy_material)));
+    commands.insert_resource(EnemyBulletMaterial(Some(enemy_bullet_material)));
+    commands.insert_resource(BulletHitMaterial(Some(bullet_hit_material)));
 
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
     commands.spawn_bundle(UiCameraBundle::default());
-
-    commands.insert_resource(EnemyMaterial(Some(enemy_material)));
-    commands.insert_resource(EnemyBulletMaterial(Some(enemy_bullet_material)));
-    commands.insert_resource(PlayerBulletMaterial(Some(player_bullet_material)));
-    commands.insert_resource(BulletHitMaterial(Some(bullet_hit_material)));
 
     // spawn background sprite
     commands
@@ -161,6 +163,9 @@ fn setup(
         .insert(Player { speed: 300. })
         .insert(Collider::Player)
         .insert(Health {max: 30, current: 30});
+
+    // spawn ui
+    create_labels(commands, asset_server);
 }
 
 fn movement(
@@ -202,25 +207,24 @@ fn movement(
 
 fn bullet_spawning(
     mut commands: Commands,
-    bullet_material: Res<PlayerBulletMaterial>,
     keyboard_input: Res<Input<KeyCode>>,
-    mut query: Query<(&Player, &mut Transform)>
+    mut query: Query<(&Player, &mut Transform)>,
+    asset_server: Res<AssetServer>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     if let Ok((_player, transform)) = query.single_mut() {
-        if let material = match bullet_material.0.clone() {
-            Some(material) => material,
-            None => return,
-        } {
-            if keyboard_input.just_pressed(KeyCode::Space) {
-                commands
-                    .spawn_bundle(SpriteBundle {
-                        material: material,
-                        transform: *transform,
-                        sprite: Sprite::new(Vec2::new(13.0, 54.0)),
-                        ..Default::default()
-                    })
-                    .insert(Bullet { owner: Owner::Player, speed: 600.0 });
-            }
+        let material = materials
+            .add(asset_server.get_handle("sprites/laserBlue16.png").into());
+
+        if keyboard_input.just_pressed(KeyCode::Space) {
+            commands
+                .spawn_bundle(SpriteBundle {
+                    material: material.clone(),
+                    transform: *transform,
+                    sprite: Sprite::new(Vec2::new(13.0, 54.0)),
+                    ..Default::default()
+                })
+                .insert(Bullet { owner: Owner::Player, speed: 600.0 });
         }
     }
 }
@@ -245,9 +249,10 @@ fn bullet_movement(
 fn bullet_collision(
     mut commands: Commands,
     mut damage_writer: EventWriter<DamageEvent>,
-    bullet_material: Res<BulletHitMaterial>,
     mut bullet_query: Query<(Entity, &mut Bullet, &Transform, &Sprite)>,
     collider_query: Query<(Entity, &Collider, &Transform, &Sprite)>,
+    asset_server: Res<AssetServer>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     for (bullet_entity, mut bullet, bullet_transform, sprite) in bullet_query.iter_mut() {
         let bullet_size = sprite.size;
@@ -279,20 +284,17 @@ fn bullet_collision(
                     damage_writer.send(DamageEvent { entity: collider_entity });
                     commands.entity(bullet_entity).despawn();
 
-                    if let material = match bullet_material.0.clone() {
-                        Some(material) => material,
-                        None => return,
-                    } {
-                        commands
-                            .spawn_bundle(SpriteBundle {
-                                material: material,
-                                transform: *bullet_transform,
-                                sprite: Sprite::new(Vec2::new(37.0, 37.0)),
-                                ..Default::default()
-                            })
-                            .insert(ImpactEffect);
-                    }
+                    let material = materials
+                        .add(asset_server.get_handle("sprites/laserOrange16.png").into());
 
+                    commands
+                        .spawn_bundle(SpriteBundle {
+                            material: material.clone(),
+                            transform: *bullet_transform,
+                            sprite: Sprite::new(Vec2::new(37.0, 37.0)),
+                            ..Default::default()
+                        })
+                        .insert(ImpactEffect);
                 }
             }
         }

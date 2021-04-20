@@ -13,7 +13,7 @@ pub fn create_labels(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     commands
         .spawn_bundle(TextBundle {
-            node: Node { size: Vec2::new(1000., 1000.) },
+            node: Node { size: Vec2::new(font_size, font_size) },
             style: Style {
                 // align_self: AlignSelf::FlexEnd,
                 // position_type: PositionType::Absolute,
@@ -29,7 +29,7 @@ pub fn create_labels(mut commands: Commands, asset_server: Res<AssetServer>) {
                     style: TextStyle {
                         font: font_handle.clone(),
                         font_size,
-                        color: Default::default()
+                        color: Color::from([255., 255., 255., 1.])
                     }
                 }],
                 alignment: TextAlignment {
@@ -43,6 +43,10 @@ pub fn create_labels(mut commands: Commands, asset_server: Res<AssetServer>) {
                     width: 100.,
                     height: 100.
                 }
+            },
+            transform: Transform {
+                translation: Vec3::new(0., 0., 3.),
+                ..Default::default()
             },
             ..Default::default()
         })
