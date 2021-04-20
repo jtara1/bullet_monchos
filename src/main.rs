@@ -160,7 +160,7 @@ fn setup(
             },
             ..Default::default()
         })
-        .insert(Player { speed: 300. })
+        .insert(Player { speed: 500. })
         .insert(Collider::Player)
         .insert(Health {max: 30, current: 30});
 
