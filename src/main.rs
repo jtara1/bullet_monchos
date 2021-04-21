@@ -294,11 +294,19 @@ fn bullet_collision(
         let bullet_size = sprite.size;
 
         for (collider_entity, collider, transform, sprite) in collider_query.iter() {
+            let mut collision_size = Vec2::new(0.,0.);
+            match collider {
+                Collider::Enemy => collision_size = sprite.size - Vec2::new(40.0, 60.0),
+
+                Collider::Player => collision_size = sprite.size - Vec2::new(66.0, 60.0),
+
+                _ => return,
+            }
             let collision: Option<Collision> = collide(
                 bullet_transform.translation,
                 bullet_size,
                 transform.translation,
-                sprite.size,
+                collision_size,
             );
 
             if let Some(_) = collision {
