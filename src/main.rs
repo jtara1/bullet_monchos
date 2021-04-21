@@ -24,7 +24,6 @@ fn main() {
         .insert_resource(ClearColor(Color::rgb(0.0, 0.0, 0.0)))
         .add_startup_system(setup.system())
         // ui
-        // .add_startup_system(create_labels.system())
         .add_system(update_labels.system())
         // ship
         .insert_resource(ImpactTimer::default())
