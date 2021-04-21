@@ -10,6 +10,7 @@ use crate::systems::*;
 use bevy::sprite::collide_aabb::Collision;
 use std::borrow::Cow::Owned;
 use crate::traits::Velocity;
+use crate::components::{Shooter, Tag};
 
 const TIME_STEP: f32 = 1.0 / 60.0;
 const WINDOW_DIMENSIONS: WindowDimensions = WindowDimensions { width: 700., height: 1400. };
@@ -272,7 +273,13 @@ fn player_cloning(
                 })
                 .insert(Drone)
                 .insert(Collider::Player)
-                .insert(Health {max: 5, current: 5});
+                .insert(Health {max: 5, current: 5})
+                .insert(Shooter::new(Bullet::new(
+                    Owner::Player,
+                    Vec3::new(0., 600., 0.),
+                    1.,
+                )))
+                .insert(Tag::new(Owner::Player));
         }
     }
 }
