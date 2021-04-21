@@ -11,13 +11,9 @@ pub fn update_labels(
     if let Ok((mut text, label_type)) = query.single_mut() {
         match label_type {
             LabelType::FPS => {
-                // println!("found label type");
                 if let Some(fps) = diagnostics.get(FrameTimeDiagnosticsPlugin::FPS) {
-                    // println!("found fps");
-
                     if let Some(average) = fps.average() {
                         text.sections[1].value = format!("{:.2}", average);
-                        println!("FPS: {}", average);
                     }
                 }
             }

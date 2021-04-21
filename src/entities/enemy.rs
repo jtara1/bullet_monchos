@@ -1,7 +1,7 @@
 use bevy::prelude::*;
-use crate::components::Movement;
+use crate::components::{Movement, Tag};
 
-use crate::{Collider, Health};
+use crate::{Collider, Health, Owner};
 
 pub struct Enemy;
 pub struct EnemyMaterial(pub Option<Handle<ColorMaterial>>);
@@ -25,5 +25,6 @@ pub fn create_enemy(
         .insert(Enemy)
         .insert(Movement::new(Vec3::new(0., -1., 0.), 0.))
         .insert(Collider::Enemy)
-        .insert(Health {max: 10, current: 10});
+        .insert(Health { max: 10, current: 10 })
+        .insert(Tag::new(Owner::Enemy));
 }

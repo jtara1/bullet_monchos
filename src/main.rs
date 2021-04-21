@@ -7,6 +7,7 @@ use bevy::{core::FixedTimestep, diagnostic::FrameTimeDiagnosticsPlugin, prelude:
 use crate::entities::*;
 use crate::systems::*;
 use bevy::sprite::collide_aabb::Collision;
+use std::borrow::Cow::Owned;
 
 const TIME_STEP: f32 = 1.0 / 60.0;
 const WINDOW_DIMENSIONS: WindowDimensions = WindowDimensions { width: 700., height: 1400. };
@@ -23,10 +24,8 @@ fn main() {
         // bg color
         .insert_resource(ClearColor(Color::rgb(0.0, 0.0, 0.0)))
         .add_startup_system(setup.system())
-        
         // ui
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
-        // .add_startup_system(create_labels.system())
         .add_system(update_labels.system())
         // ship
         .insert_resource(ImpactTimer::default())
@@ -44,10 +43,12 @@ fn main() {
                 .with_system(player_cloning.system())
         )
         // enemy
-        .insert_resource(SpawnerTimer::default())
+        .insert_resource(TwoSecondIntervalTimer::default())
         .add_system(enemy_spawner.system())
         .add_system(linear_movement.system())
-        .add_system(enemy_shooting.system())
+        .add_system(interval_linear_shooting.system())
+        // .add_system((interval_linear_shooting<Owner::Enemy>).system())
+        // .add_system(enemy_shooting.system())
         .run();
 }
 
@@ -101,9 +102,18 @@ enum Collider {
     TestWall,
 }
 
-enum Owner {
+pub enum Owner {
     Player,
     Enemy,
+}
+impl Clone for Owner {
+    fn clone(&self) -> Self {
+        match self {
+            Owner::Player => Owner::Player,
+            Owner::Enemy => Owner::Enemy,
+            _ => panic!("Owner clone() needs to implement for the give type"),
+        }
+    }
 }
 
 struct DamageEvent {
