@@ -2,7 +2,7 @@ mod entities;
 mod systems;
 mod components;
 
-use bevy::{core::FixedTimestep, prelude::*, sprite::collide_aabb::collide};
+use bevy::{core::FixedTimestep, diagnostic::FrameTimeDiagnosticsPlugin, prelude::*, sprite::collide_aabb::collide};
 
 use crate::entities::*;
 use crate::systems::*;
@@ -23,7 +23,9 @@ fn main() {
         // bg color
         .insert_resource(ClearColor(Color::rgb(0.0, 0.0, 0.0)))
         .add_startup_system(setup.system())
+        
         // ui
+        .add_plugin(FrameTimeDiagnosticsPlugin::default())
         // .add_startup_system(create_labels.system())
         .add_system(update_labels.system())
         // ship
