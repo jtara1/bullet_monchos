@@ -223,7 +223,7 @@ fn player_cloning(
                 .spawn_bundle(SpriteBundle {
                     material: material.clone(),
                     transform: Transform {
-                        translation: Vec3::new(20., 20., 1.),
+                        translation: transform.translation,
                         scale: Vec3::new(0.5, 0.5, 1.),
                         ..Default::default()
                     },
