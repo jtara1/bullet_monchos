@@ -26,7 +26,7 @@ pub fn create_labels(mut commands: Commands, asset_server: Res<AssetServer>) {
                         },
                     },
                     TextSection {
-                        value: "123.123".to_string(),
+                        value: "".to_string(),
                         style: TextStyle {
                             font: font_handle.clone(),
                             font_size,

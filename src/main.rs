@@ -221,11 +221,14 @@ fn player_cloning(
         let material = materials
             .add(asset_server.get_handle("sprites/playerShip1_blue.png").into());
         if keyboard_input.just_pressed(KeyCode::F) {
+            let multiplier = if rand::random() { -1. } else { 1. };
+            let displacement: Vec3 = Vec3::new(multiplier * 35., 0., 0.);
+
             commands
                 .spawn_bundle(SpriteBundle {
                     material: material.clone(),
                     transform: Transform {
-                        translation: transform.translation,
+                        translation: transform.translation + displacement,
                         scale: Vec3::new(0.5, 0.5, 1.),
                         ..Default::default()
                     },
