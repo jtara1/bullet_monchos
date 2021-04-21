@@ -39,6 +39,7 @@ fn main() {
                 .with_system(bullet_collision.system())
                 .with_system(damage_receiver.system())
                 .with_system(impact_effect_removal.system())
+                .with_system(player_cloning.system())
         )
         // enemy
         .insert_resource(SpawnerTimer::default())
@@ -76,6 +77,8 @@ pub struct Health {
     max: i32,
     current: i32,
 }
+
+struct Drone;
 
 struct PlayerBulletMaterial(pub Option<Handle<ColorMaterial>>);
 struct BulletHitMaterial(pub Option<Handle<ColorMaterial>>);
@@ -202,6 +205,34 @@ fn movement(
         // clamp
         translation.x = translation.x.min(PLAYER_CLAMP.x).max(-PLAYER_CLAMP.x);
         translation.y = translation.y.min(PLAYER_CLAMP.y).max(-PLAYER_CLAMP.y);
+    }
+}
+
+fn player_cloning(
+    mut commands: Commands,
+    keyboard_input: Res<Input<KeyCode>>,
+    mut query: Query<(&Player, &mut Transform)>,
+    asset_server: Res<AssetServer>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+) {
+    for (_player, transform) in query.iter_mut() {
+        let material = materials
+            .add(asset_server.get_handle("sprites/playerShip1_blue.png").into());
+        if keyboard_input.just_pressed(KeyCode::F) {
+            commands
+                .spawn_bundle(SpriteBundle {
+                    material: material.clone(),
+                    transform: Transform {
+                        translation: Vec3::new(20., 20., 1.),
+                        scale: Vec3::new(0.5, 0.5, 1.),
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                })
+                .insert(Drone)
+                .insert(Collider::Player)
+                .insert(Health {max: 5, current: 5});
+        }
     }
 }
 
