@@ -1,6 +1,7 @@
 mod entities;
 mod systems;
 mod components;
+mod traits;
 
 use bevy::{core::FixedTimestep, diagnostic::FrameTimeDiagnosticsPlugin, prelude::*, sprite::collide_aabb::collide};
 
@@ -8,6 +9,7 @@ use crate::entities::*;
 use crate::systems::*;
 use bevy::sprite::collide_aabb::Collision;
 use std::borrow::Cow::Owned;
+use crate::traits::Velocity;
 
 const TIME_STEP: f32 = 1.0 / 60.0;
 const WINDOW_DIMENSIONS: WindowDimensions = WindowDimensions { width: 700., height: 1400. };
@@ -71,9 +73,33 @@ struct PlayerPositionClamp {
     y: f32,
 }
 
-struct Bullet {
+pub struct Bullet {
     owner: Owner,
+    /* @deprecated */
     speed: f32,
+    velocity: Vec3,
+}
+
+impl Bullet {
+    pub fn new(owner: Owner, velocity: Vec3, speed: f32) -> Self {
+        Bullet { owner, velocity, speed }
+    }
+
+    pub fn get(&self) -> (&Owner, &Vec3, f32) {
+        (&self.owner, &self.velocity, self.speed)
+    }
+}
+
+impl Clone for Bullet {
+    fn clone(&self) -> Self {
+        Bullet::new(self.owner.clone(), self.velocity, self.speed)
+    }
+}
+
+impl Velocity for Bullet {
+    fn get_velocity(&self) -> Vec3 {
+        self.velocity
+    }
 }
 
 pub struct Health {
@@ -270,7 +296,7 @@ fn bullet_spawning(
                     sprite: Sprite::new(Vec2::new(13.0, 54.0)),
                     ..Default::default()
                 })
-                .insert(Bullet { owner: Owner::Player, speed: 600.0 });
+                .insert(Bullet { owner: Owner::Player, velocity: Vec3::new(0., 600., 0.), speed: 600.0 });
         }
     }
 }
