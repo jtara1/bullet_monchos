@@ -385,6 +385,7 @@ fn player_pickup(
     mut player_query: Query<(&Player, &Transform, &Sprite, &mut Health)>,
     asset_server: Res<AssetServer>,
     mut materials: ResMut<Assets<ColorMaterial>>,
+    audio: Res<Audio>,
 ) {
     for (entity, _pickup, pickup_transform, pickup_sprite) in pickup_query.iter_mut() {
         let pickup_size = pickup_sprite.size;
@@ -400,6 +401,8 @@ fn player_pickup(
 
             if let Some(_) = collision {
                 commands.entity(entity).despawn();
+                let sfx = asset_server.load("sounds/sfx_shieldUp.mp3");
+                audio.play(sfx);
                 health.current = health.current + 5;
             }
         }
