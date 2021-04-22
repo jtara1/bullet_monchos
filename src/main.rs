@@ -42,6 +42,7 @@ fn main() {
                 .with_system(bullet_spawning.system())
                 // .with_system(bullet_movement.system())
                 .with_system(bullet_collision.system())
+                .with_system(player_pickup.system())
                 .with_system(damage_receiver.system())
                 .with_system(impact_effect_removal.system())
                 .with_system(player_cloning.system())
@@ -89,6 +90,7 @@ struct Drone;
 
 struct PlayerBulletMaterial(pub Option<Handle<ColorMaterial>>);
 struct BulletHitMaterial(pub Option<Handle<ColorMaterial>>);
+struct PowerUpMaterial(pub Option<Handle<ColorMaterial>>);
 
 struct ImpactEffect;
 
@@ -124,6 +126,8 @@ struct DamageEvent {
     entity: Entity
 }
 
+struct Pickup;
+
 fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
@@ -149,11 +153,13 @@ fn setup(
     let enemy_bullet_material = materials.add(asset_server.get_handle("sprites/laserRed16.png").into());
 
     let bullet_hit_material = materials.add(asset_server.get_handle("sprites/laserOrange16.png").into());
+    let powerup_material = materials.add(asset_server.get_handle("sprites/shield_bronze.png").into());
 
     commands.insert_resource(PlayerBulletMaterial(Some(player_bullet_material)));
     commands.insert_resource(EnemyMaterial(Some(enemy_material)));
     commands.insert_resource(EnemyBulletMaterial(Some(enemy_bullet_material)));
     commands.insert_resource(BulletHitMaterial(Some(bullet_hit_material)));
+    commands.insert_resource(PowerUpMaterial(Some(powerup_material)));
 
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
     commands.spawn_bundle(UiCameraBundle::default());
@@ -377,6 +383,33 @@ fn bullet_collision(
     }
 }
 
+fn player_pickup(
+    mut commands: Commands,
+    mut pickup_query: Query<(Entity, &Pickup, &Transform, &Sprite)>,
+    mut player_query: Query<(&Player, &Transform, &Sprite, &mut Health)>,
+    asset_server: Res<AssetServer>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+) {
+    for (entity, _pickup, pickup_transform, pickup_sprite) in pickup_query.iter_mut() {
+        let pickup_size = pickup_sprite.size;
+        for (_player, player_transform, player_sprite, mut health) in player_query.iter_mut() {
+            let mut player_size = player_sprite.size;
+
+            let collision: Option<Collision> = collide(
+                pickup_transform.translation,
+                pickup_size,
+                player_transform.translation,
+                player_size,
+            );
+
+            if let Some(_) = collision {
+                commands.entity(entity).despawn();
+                health.current = health.current + 5;
+            }
+        }
+    }
+}
+
 fn impact_effect_removal(
     time: Res<Time>,
     mut timer: ResMut<ImpactTimer>,
@@ -393,20 +426,32 @@ fn impact_effect_removal(
 fn damage_receiver(
     mut commands: Commands,
     mut damage_reader: EventReader<DamageEvent>,
-    mut health_query: Query<&mut Health>,
+    mut health_query: Query<(&mut Health, &Transform)>,
     asset_server: Res<AssetServer>,
     audio: Res<Audio>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     for event in damage_reader.iter() {
-        if let Ok(mut health) = health_query.get_mut(event.entity) {
+        if let Ok((mut health, transform)) = health_query.get_mut(event.entity) {
             health.current = health.current - 1;
             if health.current <= 0 {
+                let material = materials
+                    .add(asset_server.get_handle("sprites/shield_bronze.png").into());
+
+                commands
+                    .spawn_bundle(SpriteBundle {
+                        transform: *transform,
+                        material: material.clone(),
+                        ..Default::default()
+                    })
+                    .insert(Pickup);
+
                 commands.entity(event.entity).despawn();
                 let sfx = asset_server.load("sounds/Explosion.mp3");
                 audio.play(sfx);
             }
         } else {
             println!("Does not have health component");
-        }
+            }
     }
 }
