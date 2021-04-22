@@ -51,8 +51,6 @@ fn main() {
         .add_system(enemy_spawner.system())
         .add_system(linear_movement.system())
         .add_system(interval_linear_shooting.system())
-        // .add_system((interval_linear_shooting<Owner::Enemy>).system())
-        // .add_system(enemy_shooting.system())
         .run();
 }
 

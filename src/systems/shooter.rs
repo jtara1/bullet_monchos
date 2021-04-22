@@ -19,7 +19,7 @@ pub fn interval_linear_shooting(
         let sfx = asset_server.load("sounds/tir.mp3");
         audio.play(sfx);
 
-        for (shooter, transform, tag) in query.iter() {
+        query.for_each(|(shooter, transform, tag)| {
             let spawn_location = transform;
             let bullet = shooter.bullet().clone();
             let movement = Movement::from_component(&bullet);
@@ -37,6 +37,7 @@ pub fn interval_linear_shooting(
                 .insert(bullet)
                 .insert(movement)
                 .insert(Tag::new(tag.owner().clone()));
-        }
+
+        });
     }
 }
