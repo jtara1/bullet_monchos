@@ -3,6 +3,7 @@ use bevy::prelude::*;
 use crate::components::{Shooter, Tag, Movement};
 use crate::systems::enemy::TwoSecondIntervalTimer;
 use crate::{Owner};
+use bevy::tasks::TaskPool;
 
 
 pub fn interval_linear_shooting(
@@ -15,12 +16,13 @@ pub fn interval_linear_shooting(
     audio: Res<Audio>,
 ) {
     if timer.0.tick(time.delta()).just_finished() {
-        // audio playing
-        let sfx = asset_server.load("sounds/tir.mp3");
-        audio.play(sfx);
+        let mut fired = false;
 
+        // let pool = TaskPool::new();
         query.for_each(|(shooter, transform, tag)| {
-            let spawn_location = transform;
+        // query.par_for_each(&pool, 8, |(shooter, transform, tag)| {
+            fired = true;
+            let bullet_transform = transform;
             let bullet = shooter.bullet().clone();
             let movement = Movement::from_component(&bullet);
 
@@ -31,7 +33,7 @@ pub fn interval_linear_shooting(
             commands
                 .spawn_bundle(SpriteBundle {
                     material,
-                    transform: *spawn_location,
+                    transform: *bullet_transform,
                     ..Default::default()
                 })
                 .insert(bullet)
@@ -39,5 +41,11 @@ pub fn interval_linear_shooting(
                 .insert(Tag::new(tag.owner().clone()));
 
         });
+
+        // audio playing
+        if fired {
+            let sfx = asset_server.load("sounds/tir.mp3");
+            audio.play(sfx);
+        }
     }
 }
