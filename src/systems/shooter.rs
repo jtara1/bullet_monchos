@@ -16,19 +16,14 @@ pub fn interval_linear_shooting(
     audio: Res<Audio>,
 ) {
     if timer.0.tick(time.delta()).just_finished() {
-        println!("shooting - timer finished");
-
         // audio playing
         let sfx = asset_server.load("sounds/tir.mp3");
         audio.play(sfx);
 
         for (shooter, transform, tag) in query.iter() {
-            println!("shooting - adding bullet entity {:?}", transform);
-
             let material = materials
                 .add(asset_server.get_handle("sprites/laserRed16.png").into());
             let spawn_location = transform;
-            // create_bullet(tag.owner(), material, spawn_location, commands);
             let bullet = shooter.bullet().clone();
             let movement = Movement::from_component(&bullet);
 
