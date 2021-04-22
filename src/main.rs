@@ -229,11 +229,12 @@ fn movement(
 fn player_cloning(
     mut commands: Commands,
     keyboard_input: Res<Input<KeyCode>>,
-    mut query: Query<(&Player, &mut Transform)>,
+    mut damage_writer: EventWriter<DamageEvent>,
+    mut query: Query<(&Player, &mut Transform, &mut Health, Entity)>,
     asset_server: Res<AssetServer>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
-    for (_player, transform) in query.iter_mut() {
+    for (_player, transform, mut health, entity) in query.iter_mut() {
         let material = materials
             .add(asset_server.get_handle("sprites/playerShip1_blue.png").into());
         if keyboard_input.just_pressed(KeyCode::F) {
@@ -258,6 +259,8 @@ fn player_cloning(
                     String::from("sprites/laserBlue16.png"),
                 )))
                 .insert(Tag::new(Owner::Player));
+
+            damage_writer.send(DamageEvent { entity });
         }
     }
 }
