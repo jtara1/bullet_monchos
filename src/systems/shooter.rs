@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use crate::components::{Shooter, Tag, Movement};
 // use crate::entities::create_bullet;
 use crate::systems::enemy::TwoSecondIntervalTimer;
-use crate::Bullet;
+use crate::{Bullet, Owner};
 
 
 pub fn interval_linear_shooting(
