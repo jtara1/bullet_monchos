@@ -152,6 +152,7 @@ fn setup(
     asset_server: Res<AssetServer>,
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut windows: ResMut<Windows>,
+    audio: Res<Audio>,
 ) {
     windows
         .get_primary_mut()
@@ -206,8 +207,14 @@ fn setup(
         .insert(Collider::Player)
         .insert(Health {max: 30, current: 30});
 
+    // play music
+    let music = asset_server.load("sounds/DST-RailJet-LongSeamlessLoop.mp3");
+    audio.play(music);
+
     // spawn ui
     create_labels(commands, asset_server);
+
+
 }
 
 fn movement(
@@ -290,6 +297,7 @@ fn bullet_spawning(
     mut query: Query<(&Player, &mut Transform)>,
     asset_server: Res<AssetServer>,
     mut materials: ResMut<Assets<ColorMaterial>>,
+    audio: Res<Audio>
 ) {
     if let Ok((_player, transform)) = query.single_mut() {
         let material = materials
@@ -304,6 +312,9 @@ fn bullet_spawning(
                     ..Default::default()
                 })
                 .insert(Bullet { owner: Owner::Player, velocity: Vec3::new(0., 600., 0.), speed: 600.0 });
+
+            let blast_sfx = asset_server.load("sounds/laser1.mp3");
+            audio.play(blast_sfx);
         }
     }
 }
