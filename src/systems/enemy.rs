@@ -22,7 +22,7 @@ pub fn enemy_spawner(
         let material = materials
             .add(asset_server.get_handle("sprites/enemyRed1.png").into());
 
-        let horizontal_limit = ((WINDOW_DIMENSIONS.width / 2.) - 60.) as i32;
+        let horizontal_limit = ((WINDOW_DIMENSIONS.width / 2.) - 40.) as i32;
         let vertical_limit = ((WINDOW_DIMENSIONS.height / 2.) - 150.) as i32;
 
         let x = rand::thread_rng().gen_range(-horizontal_limit..horizontal_limit);
