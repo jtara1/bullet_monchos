@@ -20,13 +20,10 @@ pub fn update_labels(
                 }
             }
             LabelType::Health => {
-                let (_player, health) = player_query.single()
-                    .unwrap_or_else(|err| {
-                        panic!("update_labels(): failure - player not found {}", err)
-                    });
-
-                let index = (&text.sections).len() - 1;
-                text.sections[index].value = format!("{:.0}", health.current());
+                if let Ok((_player, health)) = player_query.single() {
+                    let index = (&text.sections).len() - 1;
+                    text.sections[index].value = format!("{:.0}", health.current());
+                }
             }
         }
     }
