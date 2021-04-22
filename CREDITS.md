@@ -4,3 +4,9 @@
 | sprite | playerShip1_blue.png | kenny nl | player ship |
 | sprite | enemyRed1.png | kenny nl | enemy ship |
 | font | A-Space Black Demo | Studio Typo | ui font |
+| sound | laser1 | dklon | player shooting |
+| sound | laser4 | dklon | player shooting |
+| sound | laser5 | dklon | player shooting |
+| sound | tir | farfadet46 | clones shooting |
+| sound | Explosion | bart | ships exploding |
+| music | DST-RailJet-LongSeamlessLoop | DST | background music |
