@@ -6,6 +6,7 @@ pub struct Label { pub label_type: LabelType }
 #[derive(Debug)]
 pub enum LabelType {
     FPS,
+    Health,
 }
 
 pub fn create_labels(mut commands: Commands, asset_server: Res<AssetServer>) {
@@ -13,6 +14,7 @@ pub fn create_labels(mut commands: Commands, asset_server: Res<AssetServer>) {
     let font_size: f32 = 25.;
 
     commands
+        // Clone, Shoot, FPS
         .spawn_bundle(Text2dBundle {
             text: Text {
                 sections: vec![
@@ -77,4 +79,37 @@ pub fn create_labels(mut commands: Commands, asset_server: Res<AssetServer>) {
             ..Default::default()
         })
         .insert(LabelType::FPS);
+
+    commands
+        // Health
+        .spawn_bundle(Text2dBundle {
+            text: Text {
+                sections: vec![
+                    TextSection {
+                        value: "Health: ".to_string(),
+                        style: TextStyle {
+                            font: font_handle.clone(),
+                            font_size,
+                            color: Color::WHITE,
+                        },
+                    },
+                    TextSection {
+                        value: "".to_string(),
+                        style: TextStyle {
+                            font: font_handle.clone(),
+                            font_size,
+                            color: Color::RED,
+                        },
+                    },
+                ],
+                alignment: TextAlignment {
+                    vertical: VerticalAlign::Bottom,
+                    horizontal: HorizontalAlign::Center,
+                },
+                ..Default::default()
+            },
+            transform: Transform::from_xyz(0., -250., 4.),
+            ..Default::default()
+        })
+        .insert(LabelType::Health);
 }

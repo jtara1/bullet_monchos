@@ -61,7 +61,7 @@ struct WindowDimensions {
     height: f32,
 }
 
-struct Player {
+pub struct Player {
     speed: f32,
 }
 
@@ -78,6 +78,11 @@ struct PlayerPositionClamp {
 pub struct Health {
     max: i32,
     current: i32,
+}
+impl Health {
+    pub fn current(&self) -> &i32 {
+        &self.current
+    }
 }
 
 struct Drone;
