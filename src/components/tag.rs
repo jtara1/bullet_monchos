@@ -2,7 +2,7 @@ use crate::Owner;
 
 /* information about the entity it's attached to */
 pub struct Tag {
-    owner: Owner
+    pub owner: Owner
 }
 
 impl Tag {
