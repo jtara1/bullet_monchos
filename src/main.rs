@@ -11,6 +11,7 @@ use bevy::sprite::collide_aabb::Collision;
 use std::borrow::Cow::Owned;
 use crate::traits::Velocity;
 use crate::components::{Shooter, Tag};
+use rand::Rng;
 
 const TIME_STEP: f32 = 1.0 / 60.0;
 const WINDOW_DIMENSIONS: WindowDimensions = WindowDimensions { width: 700., height: 1400. };
@@ -313,8 +314,14 @@ fn bullet_spawning(
                 })
                 .insert(Bullet { owner: Owner::Player, velocity: Vec3::new(0., 600., 0.), speed: 600.0 });
 
-            let blast_sfx = asset_server.load("sounds/laser1.mp3");
-            audio.play(blast_sfx);
+            let rand = rand::thread_rng().gen_range(0..4);
+            let blast_sfx = match rand {
+                0..=1 => asset_server.load("sounds/laser1.mp3"),
+                2 => asset_server.load("sounds/laser4.mp3"),
+                3 => asset_server.load("sounds/laser5.mp3"),
+                _ => asset_server.load("sounds/laser1.mp3")
+            };
+            audio.play(blast_sfx)
         }
     }
 }
@@ -415,7 +422,9 @@ fn impact_effect_removal(
 fn damage_receiver(
     mut commands: Commands,
     mut damage_reader: EventReader<DamageEvent>,
-    mut health_query: Query<&mut Health>
+    mut health_query: Query<&mut Health>,
+    asset_server: Res<AssetServer>,
+    audio: Res<Audio>,
 ) {
     for event in damage_reader.iter() {
         if let Ok(mut health) = health_query.get_mut(event.entity) {
@@ -423,6 +432,8 @@ fn damage_receiver(
             //println!("damage_receiver(): Health is {} for entity {:?}", health.current, event.entity);
             if health.current <= 0 {
                 commands.entity(event.entity).despawn();
+                let sfx = asset_server.load("sounds/Explosion.mp3");
+                audio.play(sfx);
             }
         } else {
             println!("Does not have health component");
