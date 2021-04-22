@@ -431,16 +431,19 @@ fn damage_receiver(
         if let Ok((mut health, transform)) = health_query.get_mut(event.entity) {
             health.current = health.current - 1;
             if health.current <= 0 {
-                let material = materials
-                    .add(asset_server.get_handle("sprites/shield_bronze.png").into());
+                let rand = rand::thread_rng().gen_range(0..11);
+                if rand > 9 {
+                    let material = materials
+                        .add(asset_server.get_handle("sprites/shield_bronze.png").into());
 
-                commands
-                    .spawn_bundle(SpriteBundle {
-                        transform: *transform,
-                        material: material.clone(),
-                        ..Default::default()
-                    })
-                    .insert(Pickup);
+                    commands
+                        .spawn_bundle(SpriteBundle {
+                            transform: *transform,
+                            material: material.clone(),
+                            ..Default::default()
+                        })
+                        .insert(Pickup);
+                }
 
                 commands.entity(event.entity).despawn();
                 let sfx = asset_server.load("sounds/Explosion.mp3");
