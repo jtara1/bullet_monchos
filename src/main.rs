@@ -10,7 +10,7 @@ use crate::systems::*;
 use bevy::sprite::collide_aabb::Collision;
 use std::borrow::Cow::Owned;
 use crate::traits::Velocity;
-use crate::components::{Shooter, Tag};
+use crate::components::{Shooter, Tag, Movement};
 use rand::Rng;
 
 const TIME_STEP: f32 = 1.0 / 60.0;
@@ -40,7 +40,7 @@ fn main() {
                 .with_run_criteria(FixedTimestep::step(TIME_STEP as f64))
                 .with_system(movement.system())
                 .with_system(bullet_spawning.system())
-                .with_system(bullet_movement.system())
+                // .with_system(bullet_movement.system())
                 .with_system(bullet_collision.system())
                 .with_system(damage_receiver.system())
                 .with_system(impact_effect_removal.system())
@@ -77,24 +77,23 @@ struct PlayerPositionClamp {
 
 pub struct Bullet {
     owner: Owner,
-    /* @deprecated */
-    speed: f32,
     velocity: Vec3,
+    sprite_file_path: String,
 }
 
 impl Bullet {
-    pub fn new(owner: Owner, velocity: Vec3, speed: f32) -> Self {
-        Bullet { owner, velocity, speed }
+    pub fn new(owner: Owner, velocity: Vec3, sprite_file_path: String) -> Self {
+        Bullet { owner, velocity, sprite_file_path }
     }
 
-    pub fn get(&self) -> (&Owner, &Vec3, f32) {
-        (&self.owner, &self.velocity, self.speed)
+    pub fn get(&self) -> (&Owner, &Vec3, &String) {
+        (&self.owner, &self.velocity, &self.sprite_file_path)
     }
 }
 
 impl Clone for Bullet {
     fn clone(&self) -> Self {
-        Bullet::new(self.owner.clone(), self.velocity, self.speed)
+        Bullet::new(self.owner.clone(), self.velocity, self.sprite_file_path.clone())
     }
 }
 
@@ -284,7 +283,7 @@ fn player_cloning(
                 .insert(Shooter::new(Bullet::new(
                     Owner::Player,
                     Vec3::new(0., 600., 0.),
-                    1.,
+                    String::from("sprites/laserBlue16.png"),
                 )))
                 .insert(Tag::new(Owner::Player));
         }
@@ -300,10 +299,18 @@ fn bullet_spawning(
     audio: Res<Audio>
 ) {
     if let Ok((_player, transform)) = query.single_mut() {
+        let sprite_file_path = "sprites/laserBlue16.png";
+
         let material = materials
-            .add(asset_server.get_handle("sprites/laserBlue16.png").into());
+            .add(asset_server.get_handle(sprite_file_path).into());
 
         if keyboard_input.just_pressed(KeyCode::Space) {
+            let bullet = Bullet {
+                owner: Owner::Player,
+                velocity: Vec3::new(0., 600., 0.),
+                sprite_file_path: String::from(sprite_file_path),
+            };
+
             commands
                 .spawn_bundle(SpriteBundle {
                     material: material.clone(),
@@ -311,7 +318,8 @@ fn bullet_spawning(
                     sprite: Sprite::new(Vec2::new(13.0, 54.0)),
                     ..Default::default()
                 })
-                .insert(Bullet { owner: Owner::Player, velocity: Vec3::new(0., 600., 0.), speed: 600.0 });
+                .insert(bullet.clone())
+                .insert(Movement::from_component(&bullet));
 
             let rand = rand::thread_rng().gen_range(0..4);
             let blast_sfx = match rand {
@@ -321,23 +329,6 @@ fn bullet_spawning(
                 _ => asset_server.load("sounds/laser1.mp3")
             };
             audio.play(blast_sfx)
-        }
-    }
-}
-
-fn bullet_movement(
-    mut commands: Commands,
-    mut query: Query<(Entity, &Bullet, &mut Transform)>,
-) {
-    for (entity, bullet, mut transform) in query.iter_mut() {
-        let direction: Vec3 = Vec3::new(0.0,1.0,0.0);
-
-        let translation = &mut transform.translation;
-        // move the bullet vertically
-        translation.x += direction.x * bullet.speed * TIME_STEP;
-        translation.y += direction.y * bullet.speed * TIME_STEP;
-        if translation.y > PLAYER_CLAMP.y || translation.y < -PLAYER_CLAMP.y {
-            commands.entity(entity).despawn();
         }
     }
 }

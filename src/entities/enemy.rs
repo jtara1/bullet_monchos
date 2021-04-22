@@ -29,7 +29,7 @@ pub fn create_enemy(
         .insert(Tag::new(Owner::Enemy))
         .insert(Shooter::new(Bullet {
             owner: Owner::Enemy,
-            velocity: Vec3::new(0., -300., 0.),
-            speed: -300.,
+            velocity: Vec3::new(0., -600., 0.),
+            sprite_file_path: String::from("sprites/laserRed16.png"),
         }));
 }

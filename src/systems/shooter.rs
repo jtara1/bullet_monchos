@@ -21,11 +21,13 @@ pub fn interval_linear_shooting(
         audio.play(sfx);
 
         for (shooter, transform, tag) in query.iter() {
-            let material = materials
-                .add(asset_server.get_handle("sprites/laserRed16.png").into());
             let spawn_location = transform;
             let bullet = shooter.bullet().clone();
             let movement = Movement::from_component(&bullet);
+
+            let (_, _, material_file_path) = bullet.get();
+            let material = materials
+                .add(asset_server.get_handle(material_file_path.as_str()).into());
 
             commands
                 .spawn_bundle(SpriteBundle {
