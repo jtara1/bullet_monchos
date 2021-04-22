@@ -1,7 +1,7 @@
 use bevy::prelude::*;
-use crate::components::{Movement, Tag, Shooter};
+use crate::components::{Movement, Tag, Shooter, Bullet};
 
-use crate::{Collider, Health, Owner, Bullet};
+use crate::{Collider, Health, Owner};
 
 pub struct Enemy;
 pub struct EnemyMaterial(pub Option<Handle<ColorMaterial>>);
@@ -27,9 +27,9 @@ pub fn create_enemy(
         .insert(Collider::Enemy)
         .insert(Health { max: 10, current: 10 })
         .insert(Tag::new(Owner::Enemy))
-        .insert(Shooter::new(Bullet {
-            owner: Owner::Enemy,
-            velocity: Vec3::new(0., -600., 0.),
-            sprite_file_path: String::from("sprites/laserRed16.png"),
-        }));
+        .insert(Shooter::new(Bullet::new(
+            Owner::Enemy,
+            Vec3::new(0., -600., 0.),
+            String::from("sprites/laserRed16.png"),
+        )));
 }

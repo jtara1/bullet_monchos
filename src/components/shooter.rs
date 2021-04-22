@@ -1,4 +1,4 @@
-use crate::Bullet;
+use crate::components::Bullet;
 
 
 pub struct Shooter {

@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use rand::prelude::*;
 
-use crate::{Bullet, Owner, WINDOW_DIMENSIONS, entities::{self, Enemy}};
+use crate::{Owner, WINDOW_DIMENSIONS, entities::{self, Enemy}};
 use crate::entities::create_enemy;
 
 pub struct TwoSecondIntervalTimer(pub(crate) Timer);

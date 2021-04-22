@@ -10,7 +10,7 @@ use crate::systems::*;
 use bevy::sprite::collide_aabb::Collision;
 use std::borrow::Cow::Owned;
 use crate::traits::Velocity;
-use crate::components::{Shooter, Tag, Movement};
+use crate::components::{Shooter, Tag, Movement, Bullet};
 use rand::Rng;
 
 const TIME_STEP: f32 = 1.0 / 60.0;
@@ -73,34 +73,6 @@ struct PlayerDimensions {
 struct PlayerPositionClamp {
     x: f32,
     y: f32,
-}
-
-pub struct Bullet {
-    owner: Owner,
-    velocity: Vec3,
-    sprite_file_path: String,
-}
-
-impl Bullet {
-    pub fn new(owner: Owner, velocity: Vec3, sprite_file_path: String) -> Self {
-        Bullet { owner, velocity, sprite_file_path }
-    }
-
-    pub fn get(&self) -> (&Owner, &Vec3, &String) {
-        (&self.owner, &self.velocity, &self.sprite_file_path)
-    }
-}
-
-impl Clone for Bullet {
-    fn clone(&self) -> Self {
-        Bullet::new(self.owner.clone(), self.velocity, self.sprite_file_path.clone())
-    }
-}
-
-impl Velocity for Bullet {
-    fn get_velocity(&self) -> Vec3 {
-        self.velocity
-    }
 }
 
 pub struct Health {
@@ -305,11 +277,11 @@ fn bullet_spawning(
             .add(asset_server.get_handle(sprite_file_path).into());
 
         if keyboard_input.just_pressed(KeyCode::Space) {
-            let bullet = Bullet {
-                owner: Owner::Player,
-                velocity: Vec3::new(0., 600., 0.),
-                sprite_file_path: String::from(sprite_file_path),
-            };
+            let bullet = Bullet::new(
+                Owner::Player,
+                Vec3::new(0., 600., 0.),
+                String::from(sprite_file_path),
+            );
 
             commands
                 .spawn_bundle(SpriteBundle {
@@ -362,14 +334,15 @@ fn bullet_collision(
 
             if let Some(_) = collision {
                 let mut should_damage = false;
+                let (bullet_owner, _, _) = bullet.get();
 
-                if let Owner::Player = bullet.owner {
+                if let Owner::Player = bullet_owner {
                     if let Collider::Enemy = collider {
                         should_damage = true;
                     }
                 }
 
-                if let Owner::Enemy = bullet.owner {
+                if let Owner::Enemy = bullet_owner {
                     if let Collider::Player = collider {
                         should_damage = true;
                     }
