@@ -10,14 +10,46 @@ pub enum LabelType {
 
 pub fn create_labels(mut commands: Commands, asset_server: Res<AssetServer>) {
     let font_handle = asset_server.load("fonts/A-Space Black Demo.otf");
-    let font_size: f32 = 50.;
+    let font_size: f32 = 25.;
 
     commands
         .spawn_bundle(Text2dBundle {
             text: Text {
                 sections: vec![
                     TextSection {
-                        value: "FPS: ".to_string(),
+                        value: "Clone: ".to_string(),
+                        style: TextStyle {
+                            font: font_handle.clone(),
+                            font_size,
+                            color: Color::WHITE,
+                        },
+                    },
+                    TextSection {
+                        value: "F".to_string(),
+                        style: TextStyle {
+                            font: font_handle.clone(),
+                            font_size,
+                            color: Color::GOLD,
+                        },
+                    },
+                    TextSection {
+                        value: "    Shoot: ".to_string(),
+                        style: TextStyle {
+                            font: font_handle.clone(),
+                            font_size,
+                            color: Color::WHITE,
+                        },
+                    },
+                    TextSection {
+                        value: "Space".to_string(),
+                        style: TextStyle {
+                            font: font_handle.clone(),
+                            font_size,
+                            color: Color::GOLD,
+                        },
+                    },
+                    TextSection {
+                        value: "    FPS: ".to_string(),
                         style: TextStyle {
                             font: font_handle.clone(),
                             font_size,
@@ -35,8 +67,13 @@ pub fn create_labels(mut commands: Commands, asset_server: Res<AssetServer>) {
                         },
                     },
                 ],
+                alignment: TextAlignment {
+                    vertical: VerticalAlign::Bottom,
+                    horizontal: HorizontalAlign::Center,
+                },
                 ..Default::default()
             },
+            transform: Transform::from_xyz(0., -200., 4.),
             ..Default::default()
         })
         .insert(LabelType::FPS);

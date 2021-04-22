@@ -392,7 +392,6 @@ fn damage_receiver(
     for event in damage_reader.iter() {
         if let Ok(mut health) = health_query.get_mut(event.entity) {
             health.current = health.current - 1;
-            //println!("damage_receiver(): Health is {} for entity {:?}", health.current, event.entity);
             if health.current <= 0 {
                 commands.entity(event.entity).despawn();
                 let sfx = asset_server.load("sounds/Explosion.mp3");

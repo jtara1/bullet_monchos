@@ -13,7 +13,8 @@ pub fn update_labels(
             LabelType::FPS => {
                 if let Some(fps) = diagnostics.get(FrameTimeDiagnosticsPlugin::FPS) {
                     if let Some(average) = fps.average() {
-                        text.sections[1].value = format!("{:.2}", average);
+                        let index = (&text.sections).len() - 1;
+                        text.sections[index].value = format!("{:.0}", average);
                     }
                 }
             }
