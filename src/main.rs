@@ -52,8 +52,6 @@ fn main() {
         .add_system(enemy_spawner.system())
         .add_system(linear_movement.system())
         .add_system(interval_linear_shooting.system())
-        // .add_system((interval_linear_shooting<Owner::Enemy>).system())
-        // .add_system(enemy_shooting.system())
         .run();
 }
 
@@ -180,7 +178,7 @@ fn setup(
         .spawn_bundle(SpriteBundle {
             material: player_material.clone(),
             transform: Transform {
-                translation: Vec3::new(0., 0., 1.),
+                translation: Vec3::new(0., -WINDOW_DIMENSIONS.height / 4., 1.),
                 scale: Vec3::new(0.8, 0.8, 1.),
                 ..Default::default()
             },
@@ -188,7 +186,7 @@ fn setup(
         })
         .insert(Player { speed: 500. })
         .insert(Collider::Player)
-        .insert(Health {max: 30, current: 30});
+        .insert(Health { max: 30, current: 30 });
 
     // play music
     let music = asset_server.load("sounds/DST-RailJet-LongSeamlessLoop.mp3");
@@ -196,8 +194,6 @@ fn setup(
 
     // spawn ui
     create_labels(commands, asset_server);
-
-
 }
 
 fn movement(

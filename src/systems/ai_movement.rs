@@ -6,7 +6,7 @@ pub fn linear_movement(
     mut commands: Commands,
     mut query: Query<(Entity, &Movement, &mut Transform)>,
 ) {
-    for (entity, movement, mut transform) in query.iter_mut() {
+    query.for_each_mut(|(entity, movement, mut transform)| {
         let (direction, speed) = movement.get();
         let translation = &mut transform.translation;
 
@@ -21,5 +21,5 @@ pub fn linear_movement(
         if out_of_bounds1 || out_of_bounds2 {
             commands.entity(entity).despawn();
         }
-    }
+    });
 }
