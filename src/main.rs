@@ -23,6 +23,7 @@ const PLAYER_CLAMP: PlayerPositionClamp = PlayerPositionClamp {
 
 
 fn main() {
+    std::env::set_current_dir(std::env::current_exe().unwrap().parent().unwrap());
     App::build()
         .add_plugins(DefaultPlugins)
         // bg color
@@ -40,19 +41,21 @@ fn main() {
             SystemSet::new()
                 .with_run_criteria(FixedTimestep::step(TIME_STEP as f64))
                 .with_system(movement.system())
-                .with_system(bullet_spawning.system())
+                //.with_system(bullet_spawning.system())
                 // .with_system(bullet_movement.system())
                 .with_system(bullet_collision.system())
                 .with_system(player_pickup.system())
                 .with_system(damage_receiver.system())
                 .with_system(impact_effect_removal.system())
-                .with_system(player_cloning.system())
+                //.with_system(player_cloning.system())
         )
         // enemy
         .insert_resource(TwoSecondIntervalTimer::default())
         .add_system(enemy_spawner.system())
         .add_system(linear_movement.system())
         .add_system(interval_linear_shooting.system())
+        .add_system(bullet_spawning.system())
+        .add_system(player_cloning.system())
         .run();
 }
 
@@ -147,6 +150,7 @@ fn setup(
         .set_resolution(WINDOW_DIMENSIONS.width, WINDOW_DIMENSIONS.height);
 
     asset_server.load_folder("sprites/backgrounds/alt").expect("sprite bgs not found");
+    asset_server.load_folder("sounds").expect("sounds not found");
     asset_server.load_folder("sprites").expect("sprites not found");
     asset_server.load_folder("fonts").expect("fonts not found");
 
