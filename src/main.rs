@@ -27,6 +27,7 @@ fn main() {
         .add_plugins(DefaultPlugins)
         // bg color
         .insert_resource(ClearColor(Color::rgb(0.0, 0.0, 0.0)))
+        .insert_resource(Score::default())
         .add_startup_system(setup.system())
         // ui
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
@@ -125,6 +126,13 @@ struct DamageEvent {
 }
 
 struct Pickup;
+
+pub struct Score(u32);
+impl Default for Score {
+    fn default() -> Self {
+        Score(0)
+    }
+}
 
 fn setup(
     mut commands: Commands,
@@ -424,16 +432,18 @@ fn impact_effect_removal(
 
 fn damage_receiver(
     mut commands: Commands,
-    mut damage_reader: EventReader<DamageEvent>,
+    mut damage_readers: EventReader<DamageEvent>,
     mut health_query: Query<(&mut Health, &Transform)>,
     asset_server: Res<AssetServer>,
     audio: Res<Audio>,
     mut materials: ResMut<Assets<ColorMaterial>>,
+    mut score: ResMut<Score>
 ) {
-    for event in damage_reader.iter() {
+    for event in damage_readers.iter() {
         if let Ok((mut health, transform)) = health_query.get_mut(event.entity) {
             health.current = health.current - 1;
             if health.current <= 0 {
+                // spawning a pickup
                 let rand = rand::thread_rng().gen_range(0..11);
                 if rand > 9 {
                     let material = materials
@@ -448,12 +458,18 @@ fn damage_receiver(
                         .insert(Pickup);
                 }
 
+                // remove this entity
                 commands.entity(event.entity).despawn();
+
+                // play sound
                 let sfx = asset_server.load("sounds/Explosion.mp3");
                 audio.play(sfx);
+
+                // incr score
+                score.0 = score.0 + 1;
             }
         } else {
-            println!("Does not have health component");
-            }
+            println!("Query for Health, Transform failed");
+        }
     }
 }

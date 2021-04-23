@@ -5,8 +5,8 @@ use bevy::prelude::*;
 pub struct Label { pub label_type: LabelType }
 #[derive(Debug)]
 pub enum LabelType {
-    FPS,
-    Health,
+    Row1,
+    Row2,
 }
 
 pub fn create_labels(mut commands: Commands, asset_server: Res<AssetServer>) {
@@ -78,7 +78,7 @@ pub fn create_labels(mut commands: Commands, asset_server: Res<AssetServer>) {
             transform: Transform::from_xyz(0., -200., 4.),
             ..Default::default()
         })
-        .insert(LabelType::FPS);
+        .insert(LabelType::Row1);
 
     commands
         // Health
@@ -101,6 +101,22 @@ pub fn create_labels(mut commands: Commands, asset_server: Res<AssetServer>) {
                             color: Color::RED,
                         },
                     },
+                    TextSection {
+                        value: "    Score: ".to_string(),
+                        style: TextStyle {
+                            font: font_handle.clone(),
+                            font_size,
+                            color: Color::WHITE,
+                        },
+                    },
+                    TextSection {
+                        value: "".to_string(),
+                        style: TextStyle {
+                            font: font_handle.clone(),
+                            font_size,
+                            color: Color::GOLD,
+                        },
+                    },
                 ],
                 alignment: TextAlignment {
                     vertical: VerticalAlign::Bottom,
@@ -108,8 +124,8 @@ pub fn create_labels(mut commands: Commands, asset_server: Res<AssetServer>) {
                 },
                 ..Default::default()
             },
-            transform: Transform::from_xyz(0., -250., 4.),
+            transform: Transform::from_xyz(0., -275., 4.),
             ..Default::default()
         })
-        .insert(LabelType::Health);
+        .insert(LabelType::Row2);
 }
