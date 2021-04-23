@@ -10,8 +10,8 @@ pub enum LabelType {
 }
 
 pub fn create_labels(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let font_handle = asset_server.load("fonts/A-Space Black Demo.otf");
-    let font_size: f32 = 25.;
+    let font_handle = asset_server.load("fonts/OpenSans-Bold.ttf");
+    let font_size: f32 = 40.;
 
     commands
         // Clone, Shoot, FPS
