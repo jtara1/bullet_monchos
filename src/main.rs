@@ -192,9 +192,9 @@ fn setup(
             },
             ..Default::default()
         })
-        .insert(Player { speed: 500. })
+        .insert(Player { speed: 400. })
         .insert(Collider::Player)
-        .insert(Health { max: 30, current: 30 });
+        .insert(Health { max: 10, current: 10 });
 
     // play music
     let music = asset_server.load("sounds/DST-RailJet-LongSeamlessLoop.mp3");
@@ -267,7 +267,7 @@ fn player_cloning(
                 })
                 .insert(Drone)
                 .insert(Collider::Player)
-                .insert(Health {max: 5, current: 5})
+                .insert(Health {max: 2, current: 2})
                 .insert(Shooter::new(Bullet::new(
                     Owner::Player,
                     Vec3::new(0., 600., 0.),
