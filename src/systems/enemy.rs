@@ -7,7 +7,7 @@ use crate::entities::create_enemy;
 pub struct TwoSecondIntervalTimer(pub(crate) Timer);
 impl Default for TwoSecondIntervalTimer {
     fn default() -> Self {
-        TwoSecondIntervalTimer(Timer::from_seconds(2., true))
+        TwoSecondIntervalTimer(Timer::from_seconds(1.5, true))
     }
 }
 
