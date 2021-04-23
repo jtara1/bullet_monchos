@@ -7,6 +7,7 @@
 | sound | laser1 | dklon | player shooting |
 | sound | laser4 | dklon | player shooting |
 | sound | laser5 | dklon | player shooting |
+| sound | sfx_shieldUp | kenny nl | player pickup |
 | sound | tir | farfadet46 | clones shooting |
 | sound | Explosion | bart | ships exploding |
 | music | DST-RailJet-LongSeamlessLoop | DST | background music |
