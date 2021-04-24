@@ -10,7 +10,7 @@ use crate::systems::*;
 use bevy::sprite::collide_aabb::Collision;
 use std::borrow::Cow::Owned;
 use crate::traits::Velocity;
-use crate::components::{Shooter, Tag, Movement, Bullet, Player, Health, Drone};
+use crate::components::{Shooter, Tag, Movement, Bullet, Player, Health, Drone, Collider};
 use rand::Rng;
 
 pub const TIME_STEP: f32 = 1.0 / 60.0;
@@ -86,13 +86,6 @@ impl Default for ImpactTimer {
     fn default() -> Self {
         ImpactTimer(Timer::from_seconds(0.3, true))
     }
-}
-
-enum Collider {
-    Bullet,
-    Player,
-    Enemy,
-    TestWall,
 }
 
 pub enum Owner {

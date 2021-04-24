@@ -5,5 +5,6 @@ mod bullet;
 mod player;
 mod health;
 mod drone;
+mod collider;
 
-pub use self::{movement::*, shooter::*, tag::*, bullet::*, player::*, health::*, drone::*};
+pub use self::{movement::*, shooter::*, tag::*, bullet::*, player::*, health::*, drone::*, collider::*};
