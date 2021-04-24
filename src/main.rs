@@ -92,15 +92,6 @@ struct DamageEvent {
     entity: Entity
 }
 
-struct Pickup;
-
-pub struct Score(u32);
-impl Default for Score {
-    fn default() -> Self {
-        Score(0)
-    }
-}
-
 fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
