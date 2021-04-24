@@ -4,16 +4,16 @@ use rand::prelude::*;
 use crate::{Owner, WINDOW_DIMENSIONS, entities::{self, Enemy}};
 use crate::entities::create_enemy;
 
-pub struct TwoSecondIntervalTimer(pub(crate) Timer);
-impl Default for TwoSecondIntervalTimer {
+pub struct IntervalTimer1(pub(crate) Timer);
+impl Default for IntervalTimer1 {
     fn default() -> Self {
-        TwoSecondIntervalTimer(Timer::from_seconds(1.5, true))
+        IntervalTimer1(Timer::from_seconds(1.5, true))
     }
 }
 
 pub fn enemy_spawner(
     time: Res<Time>,
-    mut timer: ResMut<TwoSecondIntervalTimer>,
+    mut timer: ResMut<IntervalTimer1>,
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     mut materials: ResMut<Assets<ColorMaterial>>,
@@ -27,6 +27,6 @@ pub fn enemy_spawner(
 
         let x = rand::thread_rng().gen_range(-horizontal_limit..horizontal_limit);
         let y = rand::thread_rng().gen_range(0..vertical_limit);
-        create_enemy(commands, material.clone(), Vec3::new(x as f32, y as f32, 1.));
+        create_enemy(commands, material, Vec3::new(x as f32, y as f32, 1.));
     }
 }

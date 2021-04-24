@@ -10,7 +10,7 @@ use crate::systems::*;
 use bevy::sprite::collide_aabb::Collision;
 use std::borrow::Cow::Owned;
 use crate::traits::Velocity;
-use crate::components::{Shooter, Tag, Movement, Bullet, Player, Health};
+use crate::components::{Shooter, Tag, Movement, Bullet, Player, Health, Drone};
 use rand::Rng;
 
 pub const TIME_STEP: f32 = 1.0 / 60.0;
@@ -50,7 +50,7 @@ fn main() {
                 //.with_system(player_cloning.system())
         )
         // enemy
-        .insert_resource(TwoSecondIntervalTimer::default())
+        .insert_resource(IntervalTimer1::default())
         .add_system(enemy_spawner.system())
         .add_system(linear_movement.system())
         .add_system(interval_linear_shooting.system())
@@ -74,7 +74,6 @@ pub struct PlayerPositionClamp {
     y: f32,
 }
 
-struct Drone;
 
 struct PlayerBulletMaterial(pub Option<Handle<ColorMaterial>>);
 struct BulletHitMaterial(pub Option<Handle<ColorMaterial>>);
@@ -150,7 +149,7 @@ fn setup(
     let bullet_hit_material = materials.add(asset_server.get_handle("sprites/laserOrange16.png").into());
     let powerup_material = materials.add(asset_server.get_handle("sprites/shield_bronze.png").into());
 
-    commands.insert_resource(PlayerBulletMaterial(Some(player_bullet_material)));
+    // commands.insert_resource(PlayerBulletMaterial(Some(player_bullet_material)));
     commands.insert_resource(EnemyMaterial(Some(enemy_material)));
     commands.insert_resource(EnemyBulletMaterial(Some(enemy_bullet_material)));
     commands.insert_resource(BulletHitMaterial(Some(bullet_hit_material)));
@@ -395,8 +394,8 @@ fn damage_receiver(
             health.add(-1);
             if *health.current() <= 0 {
                 // spawning a pickup
-                let rand = rand::thread_rng().gen_range(0..11);
-                if rand > 9 {
+                let rand = rand::thread_rng().gen_range(0..10);
+                if rand <= 2 {
                     let material = materials
                         .add(asset_server.get_handle("sprites/shield_bronze.png").into());
 

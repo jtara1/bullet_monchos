@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use crate::components::{Shooter, Tag, Movement};
-use crate::systems::enemy::TwoSecondIntervalTimer;
+use crate::systems::enemy::IntervalTimer1;
 use crate::{Owner};
 use bevy::tasks::TaskPool;
 
@@ -9,7 +9,7 @@ use bevy::tasks::TaskPool;
 pub fn interval_linear_shooting(
     mut commands: Commands,
     time: Res<Time>,
-    mut timer: ResMut<TwoSecondIntervalTimer>,
+    mut timer: ResMut<IntervalTimer1>,
     mut query: Query<(&Shooter, &Transform, &Tag)>,
     asset_server: Res<AssetServer>,
     mut materials: ResMut<Assets<ColorMaterial>>,
