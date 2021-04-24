@@ -55,8 +55,8 @@ fn main() {
         .add_system(enemy_spawner.system())
         .add_system(linear_movement.system())
         .add_system(interval_linear_shooting.system())
-        .add_system(bullet_spawning.system())
-        .add_system(player_cloning.system())
+        .add_system(player_shooter.system())
+        .add_system(drone_spawner.system())
         .run();
 }
 
@@ -75,12 +75,6 @@ pub struct PlayerPositionClamp {
     y: f32,
 }
 
-struct PlayerBulletMaterial(pub Option<Handle<ColorMaterial>>);
-struct BulletHitMaterial(pub Option<Handle<ColorMaterial>>);
-struct PowerUpMaterial(pub Option<Handle<ColorMaterial>>);
-struct EnemyMaterial(pub Option<Handle<ColorMaterial>>);
-struct EnemyBulletMaterial(pub Option<Handle<ColorMaterial>>);
-
 struct ImpactTimer(Timer);
 impl Default for ImpactTimer {
     fn default() -> Self {
@@ -88,224 +82,8 @@ impl Default for ImpactTimer {
     }
 }
 
-struct DamageEvent {
+pub struct DamageEvent {
     entity: Entity
-}
-
-fn setup(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
-    mut windows: ResMut<Windows>,
-    audio: Res<Audio>,
-) {
-    windows
-        .get_primary_mut()
-        .unwrap()
-        .set_resolution(WINDOW_DIMENSIONS.width, WINDOW_DIMENSIONS.height);
-
-    asset_server.load_folder("sounds").expect("sounds not found");
-    asset_server.load_folder("sprites").expect("sprites not found");
-    asset_server.load_folder("fonts").expect("fonts not found");
-
-    let bg_material = materials.add(asset_server.get_handle("sprites/backgrounds/alt/black.png").into());
-
-    let player_material = materials.add(asset_server.get_handle("sprites/playerShip1_blue.png").into());
-    let player_bullet_material = materials.add(asset_server.get_handle("sprites/laserBlue16.png").into());
-
-    let enemy_material = materials.add(asset_server.get_handle("sprites/enemyRed1.png").into());
-    let enemy_bullet_material = materials.add(asset_server.get_handle("sprites/laserRed16.png").into());
-
-    let bullet_hit_material = materials.add(asset_server.get_handle("sprites/laserOrange16.png").into());
-    let powerup_material = materials.add(asset_server.get_handle("sprites/shield_bronze.png").into());
-
-    // commands.insert_resource(PlayerBulletMaterial(Some(player_bullet_material)));
-    commands.insert_resource(EnemyMaterial(Some(enemy_material)));
-    commands.insert_resource(EnemyBulletMaterial(Some(enemy_bullet_material)));
-    commands.insert_resource(BulletHitMaterial(Some(bullet_hit_material)));
-    commands.insert_resource(PowerUpMaterial(Some(powerup_material)));
-
-    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
-    commands.spawn_bundle(UiCameraBundle::default());
-
-    // spawn background sprite
-    commands
-        .spawn_bundle(SpriteBundle {
-            material: bg_material.clone(),
-            transform: Transform {
-                scale: Vec3::new(6., 6., 1.),
-                ..Default::default()
-            },
-            ..Default::default()
-        });
-
-    // spawn player ship sprite
-    commands
-        .spawn_bundle(SpriteBundle {
-            material: player_material.clone(),
-            transform: Transform {
-                translation: Vec3::new(0., -WINDOW_DIMENSIONS.height / 4., 1.),
-                scale: Vec3::new(0.8, 0.8, 1.),
-                ..Default::default()
-            },
-            ..Default::default()
-        })
-        .insert(Player::new(400.))
-        .insert(Collider::Player)
-        .insert(Health::new(10, 10));
-
-    // play music
-    let music = asset_server.load("sounds/DST-RailJet-LongSeamlessLoop.mp3");
-    audio.play(music);
-
-    // spawn ui
-    create_labels(commands, asset_server);
-}
-
-fn player_cloning(
-    mut commands: Commands,
-    keyboard_input: Res<Input<KeyCode>>,
-    mut damage_writer: EventWriter<DamageEvent>,
-    mut query: Query<(&Player, &mut Transform, &mut Health, Entity)>,
-    asset_server: Res<AssetServer>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
-) {
-    for (_player, transform, mut _health, entity) in query.iter_mut() {
-        let material = materials
-            .add(asset_server.get_handle("sprites/playerShip1_blue.png").into());
-        if keyboard_input.just_pressed(KeyCode::F) {
-            let displacement: Vec3 = Vec3::new(0., PLAYER_DIMENSIONS.height, 0.);
-
-            commands
-                .spawn_bundle(SpriteBundle {
-                    material: material.clone(),
-                    transform: Transform {
-                        translation: transform.translation + displacement,
-                        scale: Vec3::new(0.5, 0.5, 1.),
-                        ..Default::default()
-                    },
-                    ..Default::default()
-                })
-                .insert(Drone)
-                .insert(Collider::Player)
-                .insert(Health::new(2, 2))
-                .insert(Shooter::new(Bullet::new(
-                    Owner::Player,
-                    Vec3::new(0., 600., 0.),
-                    String::from("sprites/laserBlue16.png"),
-                )))
-                .insert(Tag::new(Owner::Player));
-
-            damage_writer.send(DamageEvent { entity });
-        }
-    }
-}
-
-fn bullet_spawning(
-    mut commands: Commands,
-    keyboard_input: Res<Input<KeyCode>>,
-    mut query: Query<(&Player, &mut Transform)>,
-    asset_server: Res<AssetServer>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
-    audio: Res<Audio>
-) {
-    if let Ok((_player, transform)) = query.single_mut() {
-        let sprite_file_path = "sprites/laserBlue16.png";
-
-        let material = materials
-            .add(asset_server.get_handle(sprite_file_path).into());
-
-        if keyboard_input.just_pressed(KeyCode::Space) {
-            let bullet = Bullet::new(
-                Owner::Player,
-                Vec3::new(0., 600., 0.),
-                String::from(sprite_file_path),
-            );
-
-            commands
-                .spawn_bundle(SpriteBundle {
-                    material: material.clone(),
-                    transform: *transform,
-                    sprite: Sprite::new(Vec2::new(13.0, 54.0)),
-                    ..Default::default()
-                })
-                .insert(bullet.clone())
-                .insert(Movement::from_component(&bullet));
-
-            let rand = rand::thread_rng().gen_range(0..4);
-            let blast_sfx = match rand {
-                0..=1 => asset_server.load("sounds/laser1.mp3"),
-                2 => asset_server.load("sounds/laser4.mp3"),
-                3 => asset_server.load("sounds/laser5.mp3"),
-                _ => asset_server.load("sounds/laser1.mp3")
-            };
-            audio.play(blast_sfx)
-        }
-    }
-}
-
-fn bullet_collision(
-    mut commands: Commands,
-    mut damage_writer: EventWriter<DamageEvent>,
-    mut bullet_query: Query<(Entity, &mut Bullet, &Transform, &Sprite)>,
-    collider_query: Query<(Entity, &Collider, &Transform, &Sprite)>,
-    asset_server: Res<AssetServer>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
-) {
-    for (bullet_entity, mut bullet, bullet_transform, sprite) in bullet_query.iter_mut() {
-        let bullet_size = sprite.size;
-
-        for (collider_entity, collider, transform, sprite) in collider_query.iter() {
-            let mut collision_size = Vec2::new(0.,0.);
-
-            match collider {
-                Collider::Enemy => collision_size = sprite.size - Vec2::new(40.0, 60.0),
-                Collider::Player => collision_size = sprite.size - Vec2::new(66.0, 60.0),
-                _ => return,
-            }
-
-            let collision: Option<Collision> = collide(
-                bullet_transform.translation,
-                bullet_size,
-                transform.translation,
-                collision_size,
-            );
-
-            if let Some(_) = collision {
-                let mut should_damage = false;
-                let (bullet_owner, _, _) = bullet.get();
-
-                if let Owner::Player = bullet_owner {
-                    if let Collider::Enemy = collider {
-                        should_damage = true;
-                    }
-                }
-
-                if let Owner::Enemy = bullet_owner {
-                    if let Collider::Player = collider {
-                        should_damage = true;
-                    }
-                }
-
-                if should_damage {
-                    damage_writer.send(DamageEvent { entity: collider_entity });
-                    commands.entity(bullet_entity).despawn();
-
-                    let material = materials
-                        .add(asset_server.get_handle("sprites/laserOrange16.png").into());
-
-                    commands
-                        .spawn_bundle(SpriteBundle {
-                            material: material.clone(),
-                            transform: *bullet_transform,
-                            sprite: Sprite::new(Vec2::new(37.0, 37.0)),
-                            ..Default::default()
-                        })
-                        .insert(ImpactEffect);
-                }
-            }
-        }
-    }
 }
 
 fn player_pickup(
