@@ -13,10 +13,10 @@ use crate::traits::Velocity;
 use crate::components::{Shooter, Tag, Movement, Bullet, Player};
 use rand::Rng;
 
-const TIME_STEP: f32 = 1.0 / 60.0;
+pub const TIME_STEP: f32 = 1.0 / 60.0;
 const WINDOW_DIMENSIONS: WindowDimensions = WindowDimensions { width: 700., height: 1400. };
 const PLAYER_DIMENSIONS: PlayerDimensions = PlayerDimensions { width: 99., height: 75. };
-const PLAYER_CLAMP: PlayerPositionClamp = PlayerPositionClamp {
+pub const PLAYER_CLAMP: PlayerPositionClamp = PlayerPositionClamp {
     x: WINDOW_DIMENSIONS.width * 0.5 - (PLAYER_DIMENSIONS.width / 4.),
     y: WINDOW_DIMENSIONS.height * 0.5 - (PLAYER_DIMENSIONS.height / 4.),
 };
@@ -40,7 +40,7 @@ fn main() {
         .add_system_set(
             SystemSet::new()
                 .with_run_criteria(FixedTimestep::step(TIME_STEP as f64))
-                .with_system(movement.system())
+                .with_system(player_movement.system())
                 //.with_system(bullet_spawning.system())
                 // .with_system(bullet_movement.system())
                 .with_system(bullet_collision.system())
@@ -69,7 +69,7 @@ struct PlayerDimensions {
     height: f32,
 }
 
-struct PlayerPositionClamp {
+pub struct PlayerPositionClamp {
     x: f32,
     y: f32,
 }
@@ -201,43 +201,6 @@ fn setup(
 
     // spawn ui
     create_labels(commands, asset_server);
-}
-
-fn movement(
-    keyboard_input: Res<Input<KeyCode>>,
-    mut query: Query<(&Player, &mut Transform)>,
-) {
-    if let Ok((player, mut transform)) = query.single_mut() {
-        let mut direction: Vec3 = Vec3::new(0.0,0.0,0.0);
-        if keyboard_input.pressed(KeyCode::Left) {
-            direction.x -= 1.0;
-        }
-
-        if keyboard_input.pressed(KeyCode::Right) {
-            direction.x += 1.0;
-        }
-
-        if keyboard_input.pressed(KeyCode::Up) {
-            direction.y += 1.0;
-        }
-
-        if keyboard_input.pressed(KeyCode::Down) {
-            direction.y -= 1.0;
-        }
-
-        if direction != Vec3::new(0.0,0.0,0.0) {
-            direction = direction.normalize();
-        }
-
-        let translation = &mut transform.translation;
-        // move the player
-        translation.x += direction.x * player.speed() * TIME_STEP;
-        translation.y += direction.y * player.speed() * TIME_STEP;
-
-        // clamp
-        translation.x = translation.x.min(PLAYER_CLAMP.x).max(-PLAYER_CLAMP.x);
-        translation.y = translation.y.min(PLAYER_CLAMP.y).max(-PLAYER_CLAMP.y);
-    }
 }
 
 fn player_cloning(
