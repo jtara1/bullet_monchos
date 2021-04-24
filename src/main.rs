@@ -25,6 +25,7 @@ pub const PLAYER_CLAMP: PlayerPositionClamp = PlayerPositionClamp {
 
 fn main() {
     std::env::set_current_dir(std::env::current_exe().unwrap().parent().unwrap());
+
     App::build()
         .add_plugins(DefaultPlugins)
         // bg color
@@ -37,18 +38,15 @@ fn main() {
         // ship
         .insert_resource(ImpactTimer::default())
         .add_event::<DamageEvent>()
-        // player and input
+        // with fixed timestamp
         .add_system_set(
             SystemSet::new()
                 .with_run_criteria(FixedTimestep::step(TIME_STEP as f64))
                 .with_system(player_movement.system())
-                //.with_system(bullet_spawning.system())
-                // .with_system(bullet_movement.system())
                 .with_system(bullet_collision.system())
                 .with_system(player_pickup.system())
                 .with_system(damage_receiver.system())
                 .with_system(impact_effect_removal.system())
-                //.with_system(player_cloning.system())
         )
         // enemy
         .insert_resource(IntervalTimer1::default())
@@ -75,99 +73,20 @@ pub struct PlayerPositionClamp {
     y: f32,
 }
 
-struct ImpactTimer(Timer);
+/**
+ * Resources
+ */
+pub struct ImpactTimer(Timer);
+
 impl Default for ImpactTimer {
     fn default() -> Self {
         ImpactTimer(Timer::from_seconds(0.3, true))
     }
 }
 
+/**
+ * Events
+ */
 pub struct DamageEvent {
     entity: Entity
-}
-
-fn player_pickup(
-    mut commands: Commands,
-    mut pickup_query: Query<(Entity, &Pickup, &Transform, &Sprite)>,
-    mut player_query: Query<(&Player, &Transform, &Sprite, &mut Health)>,
-    asset_server: Res<AssetServer>,
-    audio: Res<Audio>,
-) {
-    for (entity, _pickup, pickup_transform, pickup_sprite) in pickup_query.iter_mut() {
-        let pickup_size = pickup_sprite.size;
-        for (_player, player_transform, player_sprite, mut health) in player_query.iter_mut() {
-            let mut player_size = player_sprite.size;
-
-            let collision: Option<Collision> = collide(
-                pickup_transform.translation,
-                pickup_size,
-                player_transform.translation,
-                player_size,
-            );
-
-            if let Some(_) = collision {
-                commands.entity(entity).despawn();
-                let sfx = asset_server.load("sounds/sfx_shieldUp.mp3");
-                audio.play(sfx);
-                health.add(5);
-            }
-        }
-    }
-}
-
-fn impact_effect_removal(
-    time: Res<Time>,
-    mut timer: ResMut<ImpactTimer>,
-    mut commands: Commands,
-    impact_effect_query: Query<(Entity, &ImpactEffect)>
-) {
-    for (entity, _impact_effect) in impact_effect_query.iter() {
-        if timer.0.tick(time.delta()).just_finished() {
-            commands.entity(entity).despawn();
-        }
-    }
-}
-
-fn damage_receiver(
-    mut commands: Commands,
-    mut damage_readers: EventReader<DamageEvent>,
-    mut health_query: Query<(&mut Health, &Transform)>,
-    asset_server: Res<AssetServer>,
-    audio: Res<Audio>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
-    mut score: ResMut<Score>
-) {
-    for event in damage_readers.iter() {
-        if let Ok((mut health, transform)) = health_query.get_mut(event.entity) {
-            health.add(-1);
-            if *health.current() <= 0 {
-                // spawning a pickup
-                let rand = rand::thread_rng().gen_range(0..10);
-                if rand <= 2 {
-                    let material = materials
-                        .add(asset_server.get_handle("sprites/shield_bronze.png").into());
-
-                    commands
-                        .spawn_bundle(SpriteBundle {
-                            transform: *transform,
-                            material: material.clone(),
-                            ..Default::default()
-                        })
-                        .insert(Pickup);
-                }
-
-                // remove this entity
-                commands.entity(event.entity).despawn();
-
-                // play sound
-                let sfx = asset_server.load("sounds/Explosion.mp3");
-                audio.play(sfx);
-
-                // incr score
-                score.0 = score.0 + 1;
-            }
-        } else {
-            println!("Query for Health, Transform failed");
-        }
-    }
 }
