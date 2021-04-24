@@ -10,7 +10,7 @@ use crate::systems::*;
 use bevy::sprite::collide_aabb::Collision;
 use std::borrow::Cow::Owned;
 use crate::traits::Velocity;
-use crate::components::{Shooter, Tag, Movement, Bullet};
+use crate::components::{Shooter, Tag, Movement, Bullet, Player};
 use rand::Rng;
 
 const TIME_STEP: f32 = 1.0 / 60.0;
@@ -62,10 +62,6 @@ fn main() {
 struct WindowDimensions {
     width: f32,
     height: f32,
-}
-
-pub struct Player {
-    speed: f32,
 }
 
 struct PlayerDimensions {
@@ -149,7 +145,6 @@ fn setup(
         .unwrap()
         .set_resolution(WINDOW_DIMENSIONS.width, WINDOW_DIMENSIONS.height);
 
-    asset_server.load_folder("sprites/backgrounds/alt").expect("sprite bgs not found");
     asset_server.load_folder("sounds").expect("sounds not found");
     asset_server.load_folder("sprites").expect("sprites not found");
     asset_server.load_folder("fonts").expect("fonts not found");
@@ -196,7 +191,7 @@ fn setup(
             },
             ..Default::default()
         })
-        .insert(Player { speed: 400. })
+        .insert(Player::new(400.))
         .insert(Collider::Player)
         .insert(Health { max: 10, current: 10 });
 
@@ -236,8 +231,8 @@ fn movement(
 
         let translation = &mut transform.translation;
         // move the player
-        translation.x += direction.x * player.speed * TIME_STEP;
-        translation.y += direction.y * player.speed * TIME_STEP;
+        translation.x += direction.x * player.speed() * TIME_STEP;
+        translation.y += direction.y * player.speed() * TIME_STEP;
 
         // clamp
         translation.x = translation.x.min(PLAYER_CLAMP.x).max(-PLAYER_CLAMP.x);
@@ -253,7 +248,7 @@ fn player_cloning(
     asset_server: Res<AssetServer>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
-    for (_player, transform, mut health, entity) in query.iter_mut() {
+    for (_player, transform, mut _health, entity) in query.iter_mut() {
         let material = materials
             .add(asset_server.get_handle("sprites/playerShip1_blue.png").into());
         if keyboard_input.just_pressed(KeyCode::F) {
@@ -340,13 +335,13 @@ fn bullet_collision(
 
         for (collider_entity, collider, transform, sprite) in collider_query.iter() {
             let mut collision_size = Vec2::new(0.,0.);
+
             match collider {
                 Collider::Enemy => collision_size = sprite.size - Vec2::new(40.0, 60.0),
-
                 Collider::Player => collision_size = sprite.size - Vec2::new(66.0, 60.0),
-
                 _ => return,
             }
+
             let collision: Option<Collision> = collide(
                 bullet_transform.translation,
                 bullet_size,
@@ -396,7 +391,6 @@ fn player_pickup(
     mut pickup_query: Query<(Entity, &Pickup, &Transform, &Sprite)>,
     mut player_query: Query<(&Player, &Transform, &Sprite, &mut Health)>,
     asset_server: Res<AssetServer>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
     audio: Res<Audio>,
 ) {
     for (entity, _pickup, pickup_transform, pickup_sprite) in pickup_query.iter_mut() {

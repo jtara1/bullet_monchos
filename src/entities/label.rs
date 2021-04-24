@@ -98,7 +98,7 @@ pub fn create_labels(mut commands: Commands, asset_server: Res<AssetServer>) {
                         style: TextStyle {
                             font: font_handle.clone(),
                             font_size,
-                            color: Color::RED,
+                            color: Color::DARK_GREEN,
                         },
                     },
                     TextSection {
