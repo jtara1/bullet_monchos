@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use rand::prelude::*;
 
-use crate::{Owner, WINDOW_DIMENSIONS, entities::{self, Enemy}};
+use crate::{WINDOW_DIMENSIONS};
 use crate::entities::create_enemy;
 
 pub struct IntervalTimer1(pub(crate) Timer);

@@ -7,10 +7,11 @@ use bevy::{core::FixedTimestep, diagnostic::FrameTimeDiagnosticsPlugin, prelude:
 
 use crate::entities::*;
 use crate::systems::*;
+use crate::components::*;
+use crate::traits::Velocity;
+
 use bevy::sprite::collide_aabb::Collision;
 use std::borrow::Cow::Owned;
-use crate::traits::Velocity;
-use crate::components::{Shooter, Tag, Movement, Bullet, Player, Health, Drone, Collider};
 use rand::Rng;
 
 pub const TIME_STEP: f32 = 1.0 / 60.0;
@@ -74,31 +75,16 @@ pub struct PlayerPositionClamp {
     y: f32,
 }
 
-
 struct PlayerBulletMaterial(pub Option<Handle<ColorMaterial>>);
 struct BulletHitMaterial(pub Option<Handle<ColorMaterial>>);
 struct PowerUpMaterial(pub Option<Handle<ColorMaterial>>);
-
-struct ImpactEffect;
+struct EnemyMaterial(pub Option<Handle<ColorMaterial>>);
+struct EnemyBulletMaterial(pub Option<Handle<ColorMaterial>>);
 
 struct ImpactTimer(Timer);
 impl Default for ImpactTimer {
     fn default() -> Self {
         ImpactTimer(Timer::from_seconds(0.3, true))
-    }
-}
-
-pub enum Owner {
-    Player,
-    Enemy,
-}
-impl Clone for Owner {
-    fn clone(&self) -> Self {
-        match self {
-            Owner::Player => Owner::Player,
-            Owner::Enemy => Owner::Enemy,
-            _ => panic!("Owner clone() needs to implement for the give type"),
-        }
     }
 }
 
