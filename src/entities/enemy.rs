@@ -25,7 +25,7 @@ pub fn create_enemy(
         .insert(Enemy)
         .insert(Movement::new(Vec3::new(0., -1., 0.), 0.))
         .insert(Collider::Enemy)
-        .insert(Health { max: 5, current: 5 })
+        .insert(Health::new(5, 5))
         .insert(Tag::new(Owner::Enemy))
         .insert(Shooter::new(Bullet::new(
             Owner::Enemy,

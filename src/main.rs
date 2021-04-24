@@ -10,7 +10,7 @@ use crate::systems::*;
 use bevy::sprite::collide_aabb::Collision;
 use std::borrow::Cow::Owned;
 use crate::traits::Velocity;
-use crate::components::{Shooter, Tag, Movement, Bullet, Player};
+use crate::components::{Shooter, Tag, Movement, Bullet, Player, Health};
 use rand::Rng;
 
 pub const TIME_STEP: f32 = 1.0 / 60.0;
@@ -72,16 +72,6 @@ struct PlayerDimensions {
 pub struct PlayerPositionClamp {
     x: f32,
     y: f32,
-}
-
-pub struct Health {
-    max: i32,
-    current: i32,
-}
-impl Health {
-    pub fn current(&self) -> &i32 {
-        &self.current
-    }
 }
 
 struct Drone;
@@ -193,7 +183,7 @@ fn setup(
         })
         .insert(Player::new(400.))
         .insert(Collider::Player)
-        .insert(Health { max: 10, current: 10 });
+        .insert(Health::new(10, 10));
 
     // play music
     let music = asset_server.load("sounds/DST-RailJet-LongSeamlessLoop.mp3");
@@ -229,7 +219,7 @@ fn player_cloning(
                 })
                 .insert(Drone)
                 .insert(Collider::Player)
-                .insert(Health {max: 2, current: 2})
+                .insert(Health::new(2, 2))
                 .insert(Shooter::new(Bullet::new(
                     Owner::Player,
                     Vec3::new(0., 600., 0.),
@@ -372,7 +362,7 @@ fn player_pickup(
                 commands.entity(entity).despawn();
                 let sfx = asset_server.load("sounds/sfx_shieldUp.mp3");
                 audio.play(sfx);
-                health.current = health.current + 5;
+                health.add(5);
             }
         }
     }
@@ -402,8 +392,8 @@ fn damage_receiver(
 ) {
     for event in damage_readers.iter() {
         if let Ok((mut health, transform)) = health_query.get_mut(event.entity) {
-            health.current = health.current - 1;
-            if health.current <= 0 {
+            health.add(-1);
+            if *health.current() <= 0 {
                 // spawning a pickup
                 let rand = rand::thread_rng().gen_range(0..11);
                 if rand > 9 {
